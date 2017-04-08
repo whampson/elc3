@@ -28,7 +28,7 @@ You should **ALWAYS** update your repository before working.
     * If you're working on a different branch, replace "master" with your current
       branch name.
 
-Some tips
+#### Some Tips
 * Commit often! Once you get a working piece of code, you should commit it so the
   file can be rolled back should any significant bugs arise in the future.
 * Keep commit messages short and sweet.
