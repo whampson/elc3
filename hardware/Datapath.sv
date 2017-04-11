@@ -18,6 +18,7 @@ module Datapath
 
     /* Internal signals */
     logic   [15:0]  Bus;                                // The main data bus between CPU components
+    logic   [3:0]   Gate;                               // Concatenation of Gate* signals
     logic   [15:0]  MAR, MDR, IR, PC;                   // The current contents of MAR, MDR, IR, and PC
     //logic   [15:0]  MAR_In, MDR_In, IR_In, PC_In;       // Input signals for MAR, MDR, IR, and PC
     logic   [2:0]   SR1MUX_Out, SR2MUX_Out, DRMUX_Out;  // Outputs of general purpose register selection MUXes
@@ -30,6 +31,8 @@ module Datapath
     
     /* ADDR is the sum of base address (ADDR1) and offset (ADDR2) */
     assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;
+    
+    assign Gate = { GatePC, GateMDR, GateALU, GateMARMUX };
     
     /* Memory address register */
     Register        _MAR
@@ -165,6 +168,18 @@ module Datapath
         .In1(ADDR),
         .Out(MARMUX_Out),
         .Select(MARMUX)
+    );
+    
+    /* One-hot MUX for selecting which data line is currently allowed on the bus */
+    MuxOneHot_4to1  _GateMux
+    (
+        // Input order must follow definition of Gate (little-endian, see above)
+        .In0(MARMUX_Out),
+        .In1(ALU),
+        .In2(MDRMUX_Out),
+        .In3(PCMUX_Out),
+        .Out(Bus),
+        .Select(Gate)
     );
 
 endmodule
