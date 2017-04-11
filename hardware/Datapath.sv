@@ -8,13 +8,18 @@ module Datapath
     input   logic           Clk, Reset,
     
     /* eLC-3 datapath control signals */
+    input   logic   [15:0]  In,                                                  // Data from RAM
     input   logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC, // Register load signals
     input   logic           GatePC, GateMDR, GateALU, GateMARMUX,                // Bus gates
     input   logic           ADDR1MUX,                                            // Mux select signals
     input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX, SR2MUX, MARMUX,      // Mux select signals
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
     input   logic           MIO_EN, /*R_W,*/                                         // RAM operation signals
-    output  logic           BEN, IR_5/*, R*/
+    output  logic   [15:0]  Out,                                                 // Data to RAM
+    output  logic           BEN,
+    output  logic           IR_5,
+    output  logic   [3:0]   IR_15_11
+    //output  logic           R
 );
 
     /* Internal signals */
@@ -32,12 +37,15 @@ module Datapath
     logic           N, Z, P;                            // Current contents of condition code registers (CCs)
     logic           N_In, Z_In, P_In;                   // Condition code registers next states
     
+    assign Out = MDR;
+    
     /* ADDR is the sum of base address (ADDR1) and offset (ADDR2) */
     assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;
     
     assign Gate = { GatePC, GateMDR, GateALU, GateMARMUX };
     
-    assign IR_5 = IR[5];
+    assign IR_5     = IR[5];
+    assign IR_15_11 = IR[15:11];
     
     /* NZP logic */
     assign N_In = Bus[15];
@@ -221,6 +229,15 @@ module Datapath
         .In1(ADDR),
         .Out(MARMUX_Out),
         .Select(MARMUX)
+    );
+    
+    /* MUX for selecting where to read the next value for MDR from */
+    Mux_2to1        _MDRMUX
+    (
+        .In0(Bus),
+        .In1(In),
+        .Out(MDRMUX_Out),
+        .Select(MIO_EN)
     );
     
     /* One-hot MUX for selecting which data line is currently allowed on the bus */
