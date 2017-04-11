@@ -16,7 +16,7 @@ module Datapath
 
     logic   [15:0]  MAR, MDR, IR, PC;
     logic   [15:0]  MAR_In, MDR_In, IR_In, PC_In;
-    logic   [15:0]  SR1MUX_Out, SR2MUX_Out, DRMUX_Out;
+    logic   [2:0]   SR1MUX_Out, SR2MUX_Out, DRMUX_Out;
     logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out, ADDR1MUX_Out, ADDR2MUX_Out;
     logic   [15:0]  ALU;
     logic   [15:0]  SR1, SR2;
@@ -63,6 +63,7 @@ module Datapath
     (
         .Clk(Clk),
         .Reset(Reset),
+        .In(Bus),
         .LD_REG(LD_REG),
         .DR(DRMUX_Out),
         .SR1(SR1MUX_Out),
