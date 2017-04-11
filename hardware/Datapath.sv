@@ -11,9 +11,10 @@ module Datapath
     input   logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC, // Register load signals
     input   logic           GatePC, GateMDR, GateALU, GateMARMUX,                // Bus gates
     input   logic           ADDR1MUX,                                            // Mux select signals
-    input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX, MARMUX,              // Mux select signals
+    input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX, SR2MUX, MARMUX,      // Mux select signals
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
-    input   logic           MIO_EN, R_W                                          // RAM operation signals
+    input   logic           MIO_EN, /*R_W,*/                                         // RAM operation signals
+    output  logic           BEN, IR_5/*, R*/
 );
 
     /* Internal signals */
@@ -27,12 +28,24 @@ module Datapath
     logic   [15:0]  ADDR;                               // Current memory address
     logic   [15:0]  ALU;                                // Output of the ALU
     logic   [15:0]  SR1, SR2;                           // Contents of SR1 and SR2 from register file
+    logic           BEN_In;                             // Next state of branch enable register
     logic           N, Z, P;                            // Current contents of condition code registers (CCs)
+    logic           N_In, Z_In, P_In;                   // Condition code registers next states
     
     /* ADDR is the sum of base address (ADDR1) and offset (ADDR2) */
     assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;
     
     assign Gate = { GatePC, GateMDR, GateALU, GateMARMUX };
+    
+    assign IR_5 = IR[5];
+    
+    /* NZP logic */
+    assign N_In = Bus[15];
+    assign Z_In = (Bus == 16'h0000) ? 1'b1 : 1'b0;
+    assign P_In = ~N_In & ~Z_In;
+    
+    /* BEN logic */
+    assign BEN_In = (IR[11] & N) | (IR[10] & Z) | (IR[9] & P);
     
     /* Memory address register */
     Register        _MAR
@@ -72,6 +85,46 @@ module Datapath
         .In(PCMUX_Out),
         .Out(PC),
         .Load(LD_PC)
+    );
+    
+    /* Branch enable status register */
+    Register #(1)   _BEN
+    (
+        .Clk(Clk),
+        .Reset(Reset),
+        .In(BEN_In),
+        .Out(BEN),
+        .Load(LD_BEN)
+    );
+    
+    /* Negative result status register */
+    Register #(1)   _N
+    (
+        .Clk(Clk),
+        .Reset(Reset),
+        .In(N_In),
+        .Out(N),
+        .Load(LD_CC)
+    );
+    
+    /* Zero result status register */
+    Register #(1)   _Z
+    (
+        .Clk(Clk),
+        .Reset(Reset),
+        .In(Z_In),
+        .Out(Z),
+        .Load(LD_CC)
+    );
+    
+    /* Positive result status register */
+    Register #(1)   _P
+    (
+        .Clk(Clk),
+        .Reset(Reset),
+        .In(P_In),
+        .Out(P),
+        .Load(LD_CC)
     );
     
     /* Module containing 8 general purpose registers (R0-R7)
@@ -119,7 +172,7 @@ module Datapath
         .In0(SR2),
         .In1({ {11{IR[4]}}, IR[4:0] }), // SEXT(IR[4:0])
         .Out(SR2MUX_Out),
-        .Select(IR[5])
+        .Select(SR2MUX)
     );
     
     /* The ALU */
