@@ -8,7 +8,7 @@ module RegisterFile
 );
 
     // Internal load, input, and output signals
-    logic   [15:0]  R0_Ld,  R1_Ld,  R2_Ld,  R3_Ld,  R4_Ld,  R5_Ld,  R6_Ld,  R7_Ld;
+    logic           R0_Ld,  R1_Ld,  R2_Ld,  R3_Ld,  R4_Ld,  R5_Ld,  R6_Ld,  R7_Ld;
     logic   [15:0]  R0_In,  R1_In,  R2_In,  R3_In,  R4_In,  R5_In,  R6_In,  R7_In;
     logic   [15:0]  R0_Out, R1_Out, R2_Out, R3_Out, R4_Out, R5_Out, R6_Out, R7_Out;
     
@@ -49,7 +49,7 @@ module RegisterFile
         .Out5(R5_Ld),
         .Out6(R6_Ld),
         .Out7(R7_Ld),
-        .Select(LD_REG)
+        .Select(DR)
     );
     
     // Multiplexer for selecting SR1 output
