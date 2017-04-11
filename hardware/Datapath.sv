@@ -21,7 +21,7 @@ module Datapath
     logic   [15:0]  MAR, MDR, IR, PC;                   // The current contents of MAR, MDR, IR, and PC
     logic   [15:0]  MAR_In, MDR_In, IR_In, PC_In;       // Input signals for MAR, MDR, IR, and PC
     logic   [2:0]   SR1MUX_Out, SR2MUX_Out, DRMUX_Out;  // Outputs of general purpose register selection MUXes
-    logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out   // Outputs of MAR, MDR, and PC register data selection MUXes
+    logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out;  // Outputs of MAR, MDR, and PC register data selection MUXes
     logic   [15:0]  ADDR1MUX_Out, ADDR2MUX_Out;         // Outputs of memory addressing MUXes
     logic   [15:0]  ALU;                                // Output of the ALU
     logic   [15:0]  SR1, SR2;                           // Contents of SR1 and SR2 from register file
@@ -104,6 +104,23 @@ module Datapath
         .In3(3'bZZZ),   // Unused
         .Out(SR1MUX_Out),
         .Select(SR1MUX)
+    );
+    
+    /* MUX for selecting where to read input B of the ALU from */
+    Mux_2to1        _SR2MUX
+    (
+        .In0(SR2),
+        .In1({ {11{IR[4]}}, IR[4:0] }), // SEXT(IR[4:0])
+        .Out(SR2MUX_Out),
+        .Select(IR[5])
+    );
+    
+    /* The ALU */
+    ALU             _ALU
+    (
+        .A(SR1),
+        .B(SR2MUX_Out),
+        .Fn(ALUK)
     );
 
 endmodule
