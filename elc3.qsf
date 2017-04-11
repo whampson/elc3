@@ -593,6 +593,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE hardware/Register.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Mux_2to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Mux_4to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Mux_8to1.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/MuxOneHot_4to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/DeMux_1to8.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_alu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_regfile.sv
