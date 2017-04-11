@@ -7,22 +7,22 @@
 module Register #(N = 16)
 (
     input   logic           Clk, Reset, Load,
-    input   logic   [N-1:0] Data_In,
-    output  logic   [N-1:0] Data_Out
+    input   logic   [N-1:0] In,
+    output  logic   [N-1:0] Out
 );
 
-    logic   [N-1:0] Data_Next;
+    logic   [N-1:0] Next;
     
     always_ff @(posedge Clk) begin
-        Data_Out <= Data_Next;
+        Out <= Next;
     end
     
     always_comb begin
-        Data_Next = Data_Out;
+        Next = Out;
         if (Reset)
-            Data_Next = {N{1'b0}};
+            Next = {N{1'b0}};
         else if (Load)
-            Data_Next = Data_In;
+            Next = In;
     end
 
 endmodule
