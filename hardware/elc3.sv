@@ -15,15 +15,13 @@ module elc3
 );
 
     // TODO: create the eLC-3!
-    
-    // 4-bit register test on DE2-115
-    Register #(4) test
-    (
-        .Clk(CLOCK_50),
-        .Reset(~KEY[0]),
-        .Load(~KEY[3]),
-        .Data_In(SW[3:0]),
-        .Data_Out(LEDG[3:0])
-    );
+    logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
+    logic           GatePC, GateMDR, GateALU, GateMARMUX;                // Bus gates
+    logic           ADDR1MUX;                                            // Mux select signals
+    logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX, MARMUX;              // Mux select signals
+    logic   [1:0]   ALUK;                                                // ALU function select signal
+    logic           MIO_EN, R_W;                                         // RAM operation signals
+
+    Datapath dp(.Clk(CLOCK_50), .Reset(~KEY[0]), .*);
 
 endmodule
