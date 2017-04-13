@@ -6,7 +6,8 @@
  */
 module Register #(N = 16)
 (
-    input   logic           Clk, Reset, Load,
+    input   logic           Clk, Reset,
+    input   logic           Load,
     input   logic   [N-1:0] In,
     output  logic   [N-1:0] Out
 );
