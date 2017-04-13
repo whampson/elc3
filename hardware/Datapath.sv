@@ -10,7 +10,8 @@ module Datapath
     input   logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC, // Register load signals
     input   logic           GatePC, GateMDR, GateALU, GateMARMUX,                // Bus gates
     input   logic           ADDR1MUX,                                            // Mux select signals
-    input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX, SR2MUX, MARMUX,      // Mux select signals
+    input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX,                      // Mux select signals
+    input   logic           SR2MUX, MARMUX,                                      // Mux select signal
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
     input   logic           MIO_EN,                                              // RAM operation signals
     output  logic   [15:0]  Out,                                                 // Data to RAM
@@ -23,7 +24,8 @@ module Datapath
     logic   [15:0]  Bus;                                // The main data bus between CPU components
     logic   [3:0]   Gate;                               // Concatenation of Gate* signals
     logic   [15:0]  MAR, MDR, IR, PC;                   // The current contents of MAR, MDR, IR, and PC
-    logic   [2:0]   SR1MUX_Out, SR2MUX_Out, DRMUX_Out;  // Outputs of general purpose register selection MUXes
+    logic   [2:0]   SR1MUX_Out, DRMUX_Out;              // Outputs of general purpose register selection MUXes
+    logic   [15:0]  SR2MUX_Out;                         // Output of ALU input B data selection MUX
     logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out;  // Outputs of MAR, MDR, and PC register data selection MUXes
     logic   [15:0]  ADDR1MUX_Out, ADDR2MUX_Out;         // Outputs of memory addressing MUXes
     logic   [15:0]  ADDR;                               // Current memory address
@@ -147,7 +149,8 @@ module Datapath
     (
         .A(SR1),
         .B(SR2MUX_Out),
-        .Fn(ALUK)
+        .Fn(ALUK),
+        .Out(ALU)
     );
 
     /* ==== Multiplexer definitions ==== */
