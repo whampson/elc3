@@ -37,9 +37,8 @@ module Datapath
     
     assign IR_5     = IR[5];
     assign IR_15_12 = IR[15:12];
-    assign Out = MDR;                                       // Anything leaving the datapath comes from MDR
-    assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;              // Absolute memory address (Base + offset)
-    assign Gate = { GatePC, GateMDR, GateALU, GateMARMUX }; // Used below for Bus tri-state buffer selection
+    assign Out = MDR;                                   // Anything leaving the datapath comes from MDR
+    assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;          // Absolute memory address (Base + offset)
     
     /* ==== NZP logic ==== */
     assign N_In = Bus[15];
@@ -241,10 +240,10 @@ module Datapath
         // Input order must follow 'Gate' definition (little-endian, see above)
         .In0(MARMUX_Out),
         .In1(ALU),
-        .In2(MDRMUX_Out),
-        .In3(PCMUX_Out),
+        .In2(MDR),
+        .In3(PC),
         .Out(Bus),
-        .Select(Gate)
+        .Select({ GatePC, GateMDR, GateALU, GateMARMUX })
     );
 
 endmodule
