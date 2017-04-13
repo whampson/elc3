@@ -23,7 +23,7 @@ module elc3
     logic           MIO_EN, R_W;                                         // RAM operation signals
     logic           BEN;
     logic           IR_5;
-    logic   [3:0]   IR_15_11;
+    logic   [3:0]   IR_15_12;
     logic   [15:0]  In, Out;
 
     Datapath dp(.Clk(CLOCK_50), .Reset(~KEY[0]), .*);
