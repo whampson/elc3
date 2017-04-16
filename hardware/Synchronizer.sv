@@ -3,12 +3,12 @@
  *
  * @author Wes Hampson, Xavier Rocha
  */
-module Synchronizer
+module Synchronizer #(N = 1)
 (
     
-    input   Clk,
-    input   In,
-    output  Out
+    input   logic           Clk,
+    input   logic   [N-1:0] In,
+    output  logic   [N-1:0] Out
 );
 
     always_ff @(posedge Clk) begin
