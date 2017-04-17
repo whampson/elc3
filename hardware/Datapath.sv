@@ -15,6 +15,7 @@ module Datapath
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
     input   logic           MIO_EN,                                              // RAM operation signals
     output  logic   [15:0]  Out,                                                 // Data to RAM
+    output  logic   [15:0]  Address,                                             // Current RAM address
     output  logic           BEN,                                                 // Branch enable signal
     output  logic           IR_5,                                                // Bit 5 of instruction register
     output  logic   [3:0]   IR_15_12                                             // Bits 15-12 of instruction register
@@ -28,7 +29,6 @@ module Datapath
     logic   [15:0]  SR2MUX_Out;                         // Output of ALU input B data selection MUX
     logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out;  // Outputs of MAR, MDR, and PC register data selection MUXes
     logic   [15:0]  ADDR1MUX_Out, ADDR2MUX_Out;         // Outputs of memory addressing MUXes
-    logic   [15:0]  ADDR;                               // Current memory address
     logic   [15:0]  ALU;                                // Output of the ALU
     logic   [15:0]  SR1, SR2;                           // Contents of SR1 and SR2 from register file
     logic           BEN_In;                             // Next state of branch enable register
@@ -38,7 +38,7 @@ module Datapath
     assign IR_5     = IR[5];
     assign IR_15_12 = IR[15:12];
     assign Out = MDR;                                   // Anything leaving the datapath comes from MDR
-    assign ADDR = ADDR1MUX_Out + ADDR2MUX_Out;          // Absolute memory address (Base + offset)
+    assign Address = MAR;                               // RAM address comes from MAR
     
     /* ==== NZP logic ==== */
     assign N_In = Bus[15];
@@ -189,7 +189,7 @@ module Datapath
     (
         .In0(PC + 16'd1),
         .In1(Bus),
-        .In2(ADDR),
+        .In2(ADDR1MUX_Out + ADDR2MUX_Out),
         .In3(16'hZZZZ), // Unused
         .Out(PCMUX_Out),
         .Select(PCMUX)
@@ -219,7 +219,7 @@ module Datapath
     Mux_2to1        _MARMUX
     (
         .In0({ {8{1'b0}}, IR[7:0] }),       // ZEXT(IR[7:0])
-        .In1(ADDR),
+        .In1(ADDR1MUX_Out + ADDR2MUX_Out),
         .Out(MARMUX_Out),
         .Select(MARMUX)
     );
