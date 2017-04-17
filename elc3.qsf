@@ -585,7 +585,9 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/elc3.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/ControlUnit.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Datapath.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/MemoryControlUnit.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/ALU.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/RegisterFile.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Register.sv
@@ -594,6 +596,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE hardware/Mux_4to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Mux_8to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/MuxOneHot_4to1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/DeMux_1to8.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/BidirectionalTriState.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/HexDriver.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/Synchronizer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_alu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_datapath.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_regfile.sv
