@@ -10,8 +10,8 @@ module elc3
     input                   CLOCK_50,
     input           [3:0]   KEY,
     input           [17:0]  SW,
-//    output  logic   [8:0]   LEDG,
-//    output  logic   [17:0]  LEDR,
+    output  logic   [8:0]   LEDG,
+    output  logic   [17:0]  LEDR,
     output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3,
     output  logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N,
     output  logic           SRAM_LB_N, SRAM_UB_N,
@@ -61,7 +61,7 @@ module elc3
     );
 
     // eLC-3 memory addressing unit, contains KBDR, KBSR, DDR, and DSR
-    MemoryControlUnit memsCtl
+    MemoryControlUnit memCtl
     (
         .Clk(CLOCK_50),
         .Data_FromCPU(From_CPU),
@@ -69,6 +69,19 @@ module elc3
         .Data_FromKeyboard(From_Switches),
         .Data_ToVideo(To_HexDisplays),
         .*
+    );
+    
+    FakeMemory fakeMem
+    (
+        .Clk(CLOCK_50),
+        .Reset(Reset),
+        .CE(SRAM_CE_N),
+        .OE(SRAM_OE_N),
+        .WE(SRAM_WE_N),
+        .LB(SRAM_LB_N),
+        .UB(SRAM_UB_N),
+        .ADDR(SRAM_ADDR),
+        .DQ(SRAM_DQ)
     );
 
     // 7-segment display converters
