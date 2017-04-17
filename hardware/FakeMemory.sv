@@ -15,7 +15,7 @@ module FakeMemory
 
     parameter NumWords = 16;
     parameter AddrWidth = $clog2(NumWords);
-    
+
     logic   [15:0]  MemoryArray[NumWords-1:0];
     logic   [15:0]  Output;
     logic   [15:0]  DataWire;
@@ -54,7 +54,7 @@ module FakeMemory
             MemoryArray[14] <= 16'h0000;
             MemoryArray[15] <= 16'h0000;                    // NOP
         end
-        else if (~CE && ~WE && ADDR[19:AddrWidth] == {19-AddrWidth+1{1'b0}}) begin
+        else if (~CE && OE && ~WE && ADDR[19:AddrWidth] == {19-AddrWidth+1{1'b0}}) begin
             // Write to memory, but only if address is in range
             if (~UB)
                 MemoryArray[ADDR[AddrWidth-1:0]][15:8] <= DQ[15:8];
