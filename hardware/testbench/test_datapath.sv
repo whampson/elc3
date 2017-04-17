@@ -19,6 +19,7 @@ module test_datapath();
     logic   [1:0]   ALUK;                                                // ALU function select signal
     logic           MIO_EN;                                              // RAM operation signals
     logic   [15:0]  Out;                                                 // Data to RAM
+    logic   [15:0]  Address;                                             // Current RAM address
     logic           BEN;                                                 // Branch enable signal
     logic           IR_5;                                                // Bit 5 of instruction register
     logic   [3:0]   IR_15_12;                                            // Bits 15-12 of instruction register
