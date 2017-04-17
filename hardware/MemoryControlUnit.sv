@@ -22,7 +22,7 @@ module MemoryControlUnit
 );
 
     // Keyboard data and status; display data and status
-    logic           LD_KBDR, LD_KBSR;
+    logic           LD_KBSR;
     logic           LD_DDR, LD_DSR;
     logic   [15:0]  KBDR, KBSR;
     logic   [15:0]  DDR, DSR;
@@ -49,7 +49,6 @@ module MemoryControlUnit
     
     // Memory-mapped I/O logic
     always_comb begin
-        LD_KBDR     = 1'b0;
         LD_KBSR     = 1'b0;
         LD_DDR      = 1'b0;
         LD_DSR      = 1'b0;
@@ -69,14 +68,10 @@ module MemoryControlUnit
                 end
             end
             
-            // Read/write KBDR
+            // Read KBDR
             16'hFE02:   begin
-                if (MIO_EN) begin
-                    if (R_W)
-                        LD_KBDR = 1'b1;
-                    else
-                        INMUX = 2'b10;
-                end
+                if (MIO_EN)
+                    INMUX = 2'b10;
             end
             
             // Read/write DSR
@@ -118,7 +113,7 @@ module MemoryControlUnit
         .Reset(Reset),
         .In(Data_FromKeyboard),
         .Out(KBDR),
-        .Load(LD_KBDR)
+        .Load(1'b1)
     );
     
     Register        _KBSR
@@ -147,7 +142,7 @@ module MemoryControlUnit
         .Out(DSR),
         .Load(LD_DSR)
     );
-    
+
     Mux_4to1        _INMUX
     (
         .In0(Data_FromSRAM),
@@ -165,7 +160,7 @@ module MemoryControlUnit
         .In(Data_ToSRAM),           // Data going into tri-state to memory
         .Out(Data_FromSRAM),        // Data coming out of tri-state from memory
         .Data(SRAM_DQ),             // Bus travelling between tri-state and SRAM chip
-        .WriteEnable(Mem_WE)        // Read or write to SRAM
+        .WriteEnable(~SRAM_WE_N)    // Read or write to SRAM
     );
     
     // SRAM control signal synchronizers
