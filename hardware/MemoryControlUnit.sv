@@ -161,6 +161,7 @@ module MemoryControlUnit
     // Tri-state buffer for data lines between eLC-3 memory control logic and SRAM chip
     BidirectionalTriState memTristate
     (
+        .Clk(Clk),
         .In(Data_ToSRAM),           // Data going into tri-state to memory
         .Out(Data_FromSRAM),        // Data coming out of tri-state from memory
         .Data(SRAM_DQ),             // Bus travelling between tri-state and SRAM chip
