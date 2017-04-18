@@ -2,6 +2,7 @@
  * The eLC-3 datapath.
  *
  * @author Wes Hampson, Xavier Rocha
+ * Datapath Image : https://www.irif.fr/~carton/Enseignement/Architecture/Cours/Inoutput/datapath.png
  */
 module Datapath
 (
@@ -18,6 +19,7 @@ module Datapath
     output  logic   [15:0]  Address,                                             // Current RAM address
     output  logic           BEN,                                                 // Branch enable signal
     output  logic           IR_5,                                                // Bit 5 of instruction register
+	output  logic           IR_11,												 // Bit 11 of instruction register
     output  logic   [3:0]   IR_15_12                                             // Bits 15-12 of instruction register
 );
 
@@ -36,6 +38,7 @@ module Datapath
     logic           N_In, Z_In, P_In;                   // Next states for condition code registers
     
     assign IR_5     = IR[5];
+	assign IR_11	= IR[11];
     assign IR_15_12 = IR[15:12];
     assign Out = MDR;                                   // Anything leaving the datapath comes from MDR
     assign Address = MAR;                               // RAM address comes from MAR
@@ -47,7 +50,7 @@ module Datapath
     
     /* ==== Branch enable logic ==== */
     assign BEN_In = (IR[11] & N) | (IR[10] & Z) | (IR[9] & P);
-    
+	
     /* ==== Register definitions ==== */
     // Memory address register
     Register        _MAR

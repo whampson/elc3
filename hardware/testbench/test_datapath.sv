@@ -22,6 +22,7 @@ module test_datapath();
     logic   [15:0]  Address;                                             // Current RAM address
     logic           BEN;                                                 // Branch enable signal
     logic           IR_5;                                                // Bit 5 of instruction register
+	logic           IR_11;												 // Bit 11 of instruction register
     logic   [3:0]   IR_15_12;                                            // Bits 15-12 of instruction register
     
     // Internal signals

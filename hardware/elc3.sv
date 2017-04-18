@@ -34,6 +34,7 @@ module elc3
     logic           MIO_EN, R_W;                                         // RAM operation signals
     logic           BEN;
     logic           IR_5;
+	logic			IR_11;
     logic   [3:0]   IR_15_12;
     
     // eLC-3 memory address signal
