@@ -94,7 +94,7 @@ module ControlUnit
                     4'b0000:    Next_State = State_00;      // BR
                     4'b0001:    Next_State = State_01;      // ADD/ADDi
 					4'b0010:	Next_State = State_02;		// LD
-					4'b0100:	Next_State = State_03;		// ST
+					4'b0011:	Next_State = State_03;		// ST
                     4'b0100:    Next_State = State_04;      // JSR
                     4'b0101:    Next_State = State_05;      // AND/ANDi
                     4'b0110:    Next_State = State_06;      // LDR
@@ -104,8 +104,8 @@ module ControlUnit
 					4'b1011:	Next_State = State_11;		// STI
                     4'b1100:    Next_State = State_12;      // JMP
                     4'b1101:    Next_State = State_13;      // MULT/MULTi
-					4'b1100:	Next_State = State_14;		// LEA
-					4'b1110:	Next_State = State_15;		// TRAP
+					4'b1110:	Next_State = State_14;		// LEA
+					4'b1111:	Next_State = State_15;		// TRAP
                     default:    Next_State = State_18;
                 endcase
 			end
@@ -226,6 +226,49 @@ module ControlUnit
         R_W         = 1'b0;
 
         unique case (State)
+            State_18: begin 
+                GatePC = 1'b1;      // Allow the contents of PC onto the bus
+                LD_MAR = 1'b1;      // Allow MAR to be loaded with the contents of the bus
+                PCMUX = 2'b00;      // Get new PC value from PC + 1
+                LD_PC = 1'b1;       // Allow PC to be overwritten
+            end
+            
+            State_33_nR1:
+                MIO_EN = 1'b0;      // Read data from memory at M[MAR] (active-low)
+            State_33_nR2:
+                MIO_EN = 1'b0;      // Read data from memory at M[MAR] (active-low)
+            State_33_R: begin 
+                MIO_EN = 1'b0;      // Disable memory read (active-low)
+                LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
+            end
+            
+            State_35: begin 
+                GateMDR = 1'b1;     // Allow contents of MDR onto the bus
+                LD_IR = 1'b1;       // Load contents of bus into IR
+            end
+            
+            /* ===== DECODE ===== */
+            State_32:
+                LD_BEN = 1'b1;      // Allow BEN register to be loaded
+            
+            /* ===== EXECUTE ===== */
+            // BR_1 (PC <- PC + offset9)
+            State_22: begin
+                ADDR2MUX = 2'b10;   // Read offset9 from SEXT(IR[8:0])
+                PCMUX = 2'b10;      // Load PC from address MUXes
+                LD_PC = 1'b1;       // Allow PC to be overwritten
+            end
+            
+            // ADD (DR <- SR1 + OP2, setCC)
+            State_01: begin
+                DRMUX = 1'b0;       // Select DR from IR[11:9]
+                SR1MUX = 1'b1;      // Select SR1 from IR[8:6]
+                ALUK = 2'b00;       // Set ALU to add SR1 and SR2
+                GateALU = 1'b1;     // Allow ALU output onto the bus
+                LD_REG = 1'b1;      // Allow DR to be loaded with contents of bus
+                LD_CC = 1'b1;       // Set condition codes (NZP) based on contents of bus
+            end
+            
             STEP:   ;
             HALT:   ;
         endcase
