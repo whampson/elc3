@@ -24,6 +24,9 @@ module elc3
     
     logic           Run;
     
+    logic           Halted;
+    assign          LEDG[0] = Halted;
+    
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
     logic           GatePC, GateMDR, GateALU, GateMARMUX;                // Bus gates

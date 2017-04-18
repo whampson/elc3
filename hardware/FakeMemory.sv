@@ -37,11 +37,11 @@ module FakeMemory
     always_ff @(posedge Clk) begin
         if (Reset) begin
             // Initial memory contents
-            MemoryArray[0]  <= 16'b0101_000_000_1_00000;    // AND R0,R0,#0
-            MemoryArray[1]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15
-            MemoryArray[2]  <= 16'h0000;                    // NOP
-            MemoryArray[3]  <= 16'h0000;                    //  |
-            MemoryArray[4]  <= 16'h0000;                    //  v
+            MemoryArray[0]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15
+            MemoryArray[1]  <= 16'b0010_001_000000010;      // LD  R1,DISP (PC + 2)
+            MemoryArray[2]  <= 16'b0111_000_001_000000;     // STR R0,R1,#0
+            MemoryArray[3]  <= 16'h0000;                    // NOP/HALT
+            MemoryArray[4]  <= 16'hFE06;                    // :DISP
             MemoryArray[5]  <= 16'h0000;
             MemoryArray[6]  <= 16'h0000;
             MemoryArray[7]  <= 16'h0000;
