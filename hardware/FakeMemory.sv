@@ -37,17 +37,17 @@ module FakeMemory
     always_ff @(posedge Clk) begin
         if (Reset) begin
             // Initial memory contents
-            MemoryArray[0]  <= 16'b0101_000_000_1_00000;    // AND R0,R0,#0
-            MemoryArray[1]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15
-            MemoryArray[2]  <= 16'h0000;                    // NOP
+            MemoryArray[0]  <= 16'b1111_0000_0000_1000;     // Trap(x8)
+            MemoryArray[1]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15 R0 should have 30
+            MemoryArray[2]  <= 16'b1101_0000_0000_0000;		// State 13 halt
             MemoryArray[3]  <= 16'h0000;                    //  |
             MemoryArray[4]  <= 16'h0000;                    //  v
             MemoryArray[5]  <= 16'h0000;
             MemoryArray[6]  <= 16'h0000;
             MemoryArray[7]  <= 16'h0000;
-            MemoryArray[8]  <= 16'h0000;
-            MemoryArray[9]  <= 16'h0000;
-            MemoryArray[10] <= 16'h0000;
+            MemoryArray[8]  <= 16'b0101_000_000_1_00000;	// AND R0,R0,#0
+            MemoryArray[9]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15 R0 should have 15
+            MemoryArray[10] <= 16'b1100_000_111_000000;		// JMP R7
             MemoryArray[11] <= 16'h0000;
             MemoryArray[12] <= 16'h0000;
             MemoryArray[13] <= 16'h0000;

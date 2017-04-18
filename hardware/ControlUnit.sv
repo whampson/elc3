@@ -281,12 +281,13 @@ module ControlUnit
                 LD_REG = 1'b1;      // Allow DR to be loaded with contents of bus
             end
         
-            // JSR_2 (PC <- PC + offset11)
+            // JSR_IR[11] == 1 (PC <- PC + offset11)
             State_21: begin
                 ADDR2MUX = 2'b01;   // Read offset11 from SEXT(IR[10:0])
                 PCMUX = 2'b10;      // Read PC next value from address MUXes
                 LD_PC = 1'b1;       // Allow PC to be overwritten
             end
+			 
                 
             // AND (DR <- SR1 AND OP2, setCC)
             State_05: begin
@@ -311,11 +312,14 @@ module ControlUnit
             // LDR_2 (MDR <- M[MAR])
             State_25_nR1: begin
                 MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
-                R_W = 1'b1;
+                R_W = 1'b1;			// Read enable
             end
-            State_25_nR2: MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
+            State_24_nR2: begin
+				MIO_EN = 1'b1;   	// Read data from memory at M[MAR] 
+				R_W = 1'b1;			// Read enable
+			end
             State_25_R: begin
-                MIO_EN = 1'b0;      // Disable memory read (active-low)
+                MIO_EN = 1'b0;      // Disable memory read (Default behavior)
                 LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
             end
             
@@ -351,7 +355,7 @@ module ControlUnit
             
             // NOT (DR <- NOT(SR), setCC)
             State_09: begin
-                DRMUX = 1'b0;       // Select DR from IR[11:9]
+                DRMUX = 2'b00;      // Select DR from IR[11:9] (fixed from 1 bit to 2)
                 SR1MUX = 1'b1;      // Select SR from IR[8:6]
                 ALUK = 2'b10;       // Set ALU to negate SR
                 GateALU = 1'b1;     // Allow ALU output onto the bus
@@ -369,11 +373,12 @@ module ControlUnit
             end
         
             /* NEWLY ADDED FOR FINAL PROJECT */
-            // ADDED INST: TRAP(9), LEA(14), LD(2), LDI(10), STI(11), ST(3), JSR(4), MULT(13)
+            // TO ADD LIST : TRAP(9)#done, LEA(14)#done, LD(2)#done, LDI(10)#done, STI(11)#done, ST(3)#done, JSR(4)#done, MULT(13)#done
+			// TO TEST LIST: TRAP(9), LEA(14), LD(2), LDI(10), STI(11), ST(3), JSR(4), MULT(13)
             
             // MULT
             State_13: begin
-                /* Do Nothing */
+                /* Do Nothing */;
             end
             
             // JSR_1 (MAR <- ZEXT(IR[7:0]))
@@ -388,23 +393,110 @@ module ControlUnit
             State_28_nR1: MIO_EN = 1'b1;    // Write MDR to memory at M[MAR] 
             State_28_R: begin 
                 MIO_EN = 1'b0;      // Disable memory write 
+				// Do I need to LD_MDR here?
                 GatePC = 1'b1;      // Allow PC to output to the bus
                 LD_REG = 1'b1;      // Allow the Register File to be loaded
                 DRMUX = 2'b01;      // Allow the PC to be stored in R7
             end
             
-            // JSR_3 (PC <= MDR)
+            // JSR_3 (PC <- MDR)
             State_30: begin
-                
+                GateMDR = 1'b1;		// Allows MDR to be put on the bus
+				PCMUX = 2'b01;		// Opens PC to read from the bus
+				LD_PC = 1'b1;		// Loads PC with the value currently on the bus
             end
             
             // LEA
             State_14: begin
-            
+                ADDR2MUX = 2'b10;   // Read offset9 from SEXT(IR[8:0])
+				MARMUX = 1'b1;		// Set MARMUX to to read PC + offset9
+				GateMARMUX = 1'b1;	// Allow MARMUX contents to go on the bus
+                DRMUX = 2'b00;      // Select DR from IR[11:9] (Default behavior)
+				LD_REG = 1'b1;      // Allow DR to be loaded with contents of bus
+                LD_CC = 1'b1;       // Set condition codes (NZP) based on contents of bus
             end
-            
-            
-            
+			
+			// LD (MAR <- PC + offset9)
+			State_02: begin
+				ADDR2MUX = 2'b10;
+				MARMUX = 1'b1;
+				GateMARMUX = 1'b1;
+				LD_MAR = 1'b1;
+			end
+			
+			// LDI_1 (MAR <- PC + offset9)
+			State_10: begin
+				ADDR2MUX = 2'b10;
+				MARMUX = 1'b1;
+				GateMARMUX = 1'b1;
+				LD_MAR = 1'b1;
+			end
+			
+			// LDI_2 (MDR <- M[MAR])
+            State_24_nR1: begin
+                MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
+                R_W = 1'b1;			// Read enable
+            end
+            State_24_nR2: begin
+				MIO_EN = 1'b1;  	// Read data from memory at M[MAR] 
+				R_W = 1'b1;			// Read enable
+			end
+            State_24_R: begin
+                MIO_EN = 1'b0;      // Disable memory read (Defualt behavior)
+                LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
+            end 
+			
+			// LDI_3 (MAR <- MDR)
+			State_26: begin
+				GateMDR = 1'b1;		// Put data from MDR to the bus
+				LD_MAR = 1'b1;		// Load MAR with contents from the bus (MDR)
+			end
+			
+			// STI_1 (MAR <- PC + offset9)
+			State_11: begin
+				ADDR2MUX = 2'b10;
+				MARMUX = 1'b1;
+				GateMARMUX = 1'b1;
+				LD_MAR = 1'b1;
+			end
+			
+			// STI_2 (MDR <- M[MAR])
+			State_29_nR1: begin
+                MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
+                R_W = 1'b1;			// Read enable
+            end
+            State_29_nR2: begin
+				MIO_EN = 1'b1;  	// Read data from memory at M[MAR] 
+				R_W = 1'b1;			// Read enable
+			end
+            State_29_R: begin
+                MIO_EN = 1'b0;      // Disable memory read (Defualt behavior)
+                LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
+            end 
+			
+			// STI_3 (MAR <- MDR)
+			State_31: begin
+				GateMDR = 1'b1;		// Put data from MDR to the bus
+				LD_MAR = 1'b1;		// Load MAR with contents from the bus (MDR)	
+			end
+			
+			// ST (MAR <- PC + offset9)
+			State_03: begin
+				ADDR2MUX = 2'b10;
+				MARMUX = 1'b1;
+				GateMARMUX = 1'b1;
+				LD_MAR = 1'b1;
+			end
+			
+			// JSR_IR[11] == 0 (PC <- BaseR) The rest of JSR is above from previous iteration
+			State_20: begin
+				SR1MUX = 1'b1;      // Select BaseR from IR[8:6]
+                ALUK = 2'b11;       // Allow contents of BaseR to pass theough the ALU
+                GateALU = 1'b1;
+                PCMUX = 2'b01;      // Read PC next value from contents of the bus
+                LD_PC = 1'b1;       // Allow PC to be overwritten
+			end
+			
             default: /* Do Nothing */ ;
             
         endcase
