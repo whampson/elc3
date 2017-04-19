@@ -12,7 +12,7 @@ module elc3
     input           [17:0]  SW,
     output  logic   [8:0]   LEDG,
     output  logic   [17:0]  LEDR,
-    output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3,
+    output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4,
     output  logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N,
     output  logic           SRAM_LB_N, SRAM_UB_N,
     output  logic   [19:0]  SRAM_ADDR,
@@ -21,11 +21,15 @@ module elc3
 
     // Synchronized master reset signal
     logic           Reset;
-    
     logic           Run;
+    logic           Continue;
     
-    logic           Halted;
+    logic   [3:0]   Opcode;
+    
+    logic           Halted, Paused, Invalid;
     assign          LEDG[0] = Halted;
+    assign          LEDG[1] = Paused;
+    assign          LEDR[0] = Invalid;
     
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
@@ -75,6 +79,8 @@ module elc3
         .*
     );
     
+    // SRAM emulation
+    // ===== Comment-out when synthesizing to FPGA!! =====a //
     FakeMemory fakeMem
     (
         .Clk(CLOCK_50),
@@ -94,12 +100,34 @@ module elc3
     HexDriver hx2(.In(To_HexDisplays[11:8]),  .Out(HEX2));
     HexDriver hx3(.In(To_HexDisplays[15:12]), .Out(HEX3));
 
-    // Switch synchronizer
-    Synchronizer #(16) syncSW(.Clk(CLOCK_50), .In(SW[15:0]), .Out(From_Switches));
+    HexDriver hx4(.In(Opcode), .Out(HEX4));
 
-    // Reset signal synchronizer
-    Synchronizer syncReset(.Clk(CLOCK_50), .In(~KEY[0]), .Out(Reset));
-    
-    Synchronizer syncRun(.Clk(CLOCK_50), .In(~KEY[3]), .Out(Run));
+    // Switch synchronizer
+    Synchronizer #(16) syncSW
+    (
+        .Clk(CLOCK_50),
+        .In(SW[15:0]),
+        .Out(From_Switches)
+    );
+
+    // Reset, Run, and Continue signal synchronizers
+    Synchronizer syncReset
+    (
+        .Clk(CLOCK_50),
+        .In(~KEY[0]),
+        .Out(Reset)
+    );
+    Synchronizer syncRun
+    (
+        .Clk(CLOCK_50),
+        .In(~KEY[3]),
+        .Out(Run)
+    );
+    Synchronizer syncContinue
+    (
+        .Clk(CLOCK_50),
+        .In(~KEY[2]),
+        .Out(Continue)
+    );
 
 endmodule
