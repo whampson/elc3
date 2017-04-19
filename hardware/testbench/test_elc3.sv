@@ -5,11 +5,14 @@ module test_elc3();
     logic   [17:0]  SW;
     logic   [8:0]   LEDG;
     logic   [17:0]  LEDR;
-    logic   [6:0]   HEX0, HEX1, HEX2, HEX3;
+    logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4;
     logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N;
     logic           SRAM_LB_N, SRAM_UB_N;
     logic   [19:0]  SRAM_ADDR;
     wire    [15:0]  SRAM_DQ;
+    
+    logic   [15:0]  TriState_Out;
+    logic   [15:0]  TriState_In;
     
     logic Clk, Reset, Run;
     
@@ -17,8 +20,10 @@ module test_elc3();
     assign KEY[0] = ~Reset;
     assign KEY[3] = ~Run;
     
+    logic   [15:0]  Bus;
     logic   [15:0]  MAR, MDR, IR, PC;
     logic   [15:0]  R0, R1, R2, R3, R4, R5, R6, R7;
+    logic   [15:0]  SR1, SR2;
     
     logic   [7:0]   State;
     logic   [3:0]   Opcode;
@@ -35,7 +40,10 @@ module test_elc3();
     end
     
     always begin : INTERNAL_MONITORING
-    #1  MAR = theELC3.dp.MAR;
+    #1  TriState_In = theELC3.memCtl.TriState_In;
+        TriState_Out = theELC3.memCtl.TriState_Out;
+        Bus = theELC3.dp.Bus;
+        MAR = theELC3.dp.MAR;
         MDR = theELC3.dp.MDR;
         IR = theELC3.dp.IR;
         PC = theELC3.dp.PC;
@@ -47,6 +55,8 @@ module test_elc3();
         R5 = theELC3.dp._GenPurposeRegs.R5_Out;
         R6 = theELC3.dp._GenPurposeRegs.R6_Out;
         R7 = theELC3.dp._GenPurposeRegs.R7_Out;
+        SR1 = theELC3.dp.SR1;
+        SR2 = theELC3.dp.SR2;
         State = theELC3.ctl.State;
         Opcode = theELC3.ctl.Opcode;
         MIO_EN = theELC3.MIO_EN;
