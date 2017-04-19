@@ -51,7 +51,7 @@ module ControlUnit
         State_16_nR2    = 8'd116,
         State_16_R      = 8'd216,   //  R: State when data from memory is ready
         //State_17        = 8'd17,
-        State_18        = 8'd18, 
+        State_18        = 8'd18,
         //State_19        = 8'd19,
         State_20        = 8'd20,
         State_21        = 8'd21,
