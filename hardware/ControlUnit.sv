@@ -104,7 +104,7 @@ module ControlUnit
 					4'b1010:    Next_State = State_10;      // LDI
 					4'b1011:    Next_State = State_11;      // STI
 					4'b1100:    Next_State = State_12;      // JMP
-					4'b1101:    Next_State = State_13;      // MULT/MULTi
+					4'b1101:    Next_State = HALT; // Next_State = State_13;      // MULT/MULTi
 					4'b1110:    Next_State = State_14;      // LEA
 					4'b1111:    Next_State = State_15;      // TRAP
 					default:    Next_State = State_18;
@@ -240,10 +240,14 @@ module ControlUnit
                 LD_PC = 1'b1;       // Allow PC to be overwritten
             end
             
-            State_33_nR1: MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
-            State_33_nR2: MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
+            State_33_nR1: begin
+				MIO_EN = 1'b1;      // Read data from memory at M[MAR]
+			end	
+            State_33_nR2: begin
+				MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
+			end
             State_33_R: begin 
-                MIO_EN = 1'b0;      // Disable memory read
+                MIO_EN = 1'b1;      // Read data from memory at M[MAR]
                 LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
             end
             
@@ -312,16 +316,14 @@ module ControlUnit
             // LDR_2 (MDR <- M[MAR])
             State_25_nR1: begin
                 MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
-                R_W = 1'b1;			// Read enable
             end
-            State_24_nR2: begin
+            State_25_nR2: begin
 				MIO_EN = 1'b1;   	// Read data from memory at M[MAR] 
-				R_W = 1'b1;			// Read enable
 			end
             State_25_R: begin
-                MIO_EN = 1'b0;      // Disable memory read (Default behavior)
+                MIO_EN = 1'b1;      // Read data from memory at M[MAR]
                 LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
-            end
+            end	
             
             // LDR_3 (DR <- MDR, setCC)
             State_27: begin
@@ -349,10 +351,18 @@ module ControlUnit
             end
             
             // STR_3 (M[MAR] <- MDR)
-            State_16_nR1: MIO_EN = 1'b1;      // Write MDR to memory at M[MAR]
-            State_16_nR2: MIO_EN = 1'b1;      // Write MDR to memory at M[MAR] 
-            State_16_R:   MIO_EN = 1'b0;      // Disable memory write 
-            
+            State_16_nR1: begin
+				MIO_EN = 1'b1;      // Write MDR to memory at M[MAR]
+				R_W = 1'b1;
+			end
+            State_16_nR2: begin
+				MIO_EN = 1'b1;      // Write MDR to memory at M[MAR] 
+				R_W = 1'b1;
+			end
+            State_16_R: begin
+				MIO_EN = 1'b0;      // Disable memory write 
+            end
+			
             // NOT (DR <- NOT(SR), setCC)
             State_09: begin
                 DRMUX = 2'b00;      // Select DR from IR[11:9] (fixed from 1 bit to 2)
@@ -382,18 +392,26 @@ module ControlUnit
             end
             
             // JSR_1 (MAR <- ZEXT(IR[7:0]))
-            State_09: begin
-                MARMUX = 1'b0;
-                GateMARMUX = 1'b1;
-                LD_MAR = 1'b1;
+            State_15: begin
+                MARMUX = 1'b0;		// Have MAR become IR[7:0]
+                GateMARMUX = 1'b1;	// Put the ZEXT(IR[7:0]) onto the bus
+                LD_MAR = 1'b1;		// Load the value currently on the bus to MAR
             end
             
             // JSR_2 (MDR <- M[MAR], R7 <- PC)
-            State_28_nR2: MIO_EN = 1'b1;    // Write MDR to memory at M[MAR] 
-            State_28_nR1: MIO_EN = 1'b1;    // Write MDR to memory at M[MAR] 
-            State_28_R: begin 
-                MIO_EN = 1'b0;      // Disable memory write 
-				// Do I need to LD_MDR here?
+            State_28_nR2: begin
+				MIO_EN = 1'b1;    // Write MDR to memory at M[MAR] 
+				R_W = 1'b1;
+			end
+			State_28_nR1: begin
+				MIO_EN = 1'b1;    // Write MDR to memory at M[MAR]
+				R_W = 1'b1;
+			end
+			State_28_R: begin 
+				/* Instruction 1 (MDR <- M[MAR]) */
+                MIO_EN = 1'b1;      // Disable memory write (Default behavior)
+				LD_MAR = 1'b1;		// Load MDR with M[MAR]
+				/* Instruction 2 (R7 <- PC) */
                 GatePC = 1'b1;      // Allow PC to output to the bus
                 LD_REG = 1'b1;      // Allow the Register File to be loaded
                 DRMUX = 2'b01;      // Allow the PC to be stored in R7
@@ -432,17 +450,15 @@ module ControlUnit
 				LD_MAR = 1'b1;
 			end
 			
-			// LDI_2 (MDR <- M[MAR])
+			// LDI_2 (MDR <- M[MAR]) 
             State_24_nR1: begin
                 MIO_EN = 1'b1;      // Read data from memory at M[MAR] 
-                R_W = 1'b1;			// Read enable
             end
             State_24_nR2: begin
-				MIO_EN = 1'b1;  	// Read data from memory at M[MAR] 
-				R_W = 1'b1;			// Read enable
+				MIO_EN = 1'b1;  	// Read data from memory at M[MAR] .
 			end
             State_24_R: begin
-                MIO_EN = 1'b0;      // Disable memory read (Defualt behavior)
+                MIO_EN = 1'b1;      // Read data from memory at M[MAR]
                 LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
             end 
 			
@@ -470,7 +486,7 @@ module ControlUnit
 				R_W = 1'b1;			// Read enable
 			end
             State_29_R: begin
-                MIO_EN = 1'b0;      // Disable memory read (Defualt behavior)
+                MIO_EN = 1'b1;      // Disable memory read (Defualt behavior)
                 LD_MDR = 1'b1;      // Allow MDR to be loaded with data from memory
             end 
 			
