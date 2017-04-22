@@ -11,9 +11,6 @@ module test_elc3();
     logic   [19:0]  SRAM_ADDR;
     wire    [15:0]  SRAM_DQ;
     
-    logic   [15:0]  TriState_Out;
-    logic   [15:0]  TriState_In;
-    
     logic Clk, Reset, Run;
     
     assign CLOCK_50 = Clk;
@@ -40,9 +37,7 @@ module test_elc3();
     end
     
     always begin : INTERNAL_MONITORING
-    #1  TriState_In = theELC3.memCtl.TriState_In;
-        TriState_Out = theELC3.memCtl.TriState_Out;
-        Bus = theELC3.dp.Bus;
+    #1  Bus = theELC3.dp.Bus;
         MAR = theELC3.dp.MAR;
         MDR = theELC3.dp.MDR;
         IR = theELC3.dp.IR;
