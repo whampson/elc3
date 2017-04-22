@@ -12,16 +12,17 @@ module BidirectionalTriState #(N = 16)
     inout           [N-1:0] Data
 );
 
-    logic   [N-1:0] DataOut_Buffer;
+    logic   [N-1:0] DataIn_Buffer, DataOut_Buffer;
     
     // Update the output buffer every clock cycle
     always_ff @(posedge Clk) begin
+        DataIn_Buffer <= Data;
         DataOut_Buffer <= In;
     end
     
+    assign Out = DataIn_Buffer;
+    
     // Write output from buffer; output Hi-Z when not writing
     assign Data = (WriteEnable) ? DataOut_Buffer : {N{1'bZ}};
-    
-    assign Out = Data;
 
 endmodule
