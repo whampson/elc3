@@ -19,7 +19,7 @@ module elc3
     inout   wire    [15:0]  SRAM_DQ
 );
 
-    // Synchronized master reset signal
+    // Synchronized reset, run, and continue signals
     logic           Reset;
     logic           Run;
     logic           Continue;
@@ -44,20 +44,25 @@ module elc3
 	logic			IR_11;
     logic   [3:0]   IR_15_12;
     
-    // eLC-3 memory address signal
+    // eLC-3 memory signals
     logic   [15:0]  Address;
+    logic           Mem_CE, Mem_OE, Mem_WE;
+    logic           Mem_LB, Mem_UB;
+    assign          SRAM_ADDR = { 4'b0000, Address };
     
     // eLC-3 data signals
-    logic   [15:0]  To_CPU, From_CPU;       // Data to/from datapath
-    logic   [15:0]  To_HexDisplays;         // "Video" output
-    logic   [15:0]  From_Switches;          // "Keyboard" input
+    logic   [15:0]  Data_FromCPU, Data_ToCPU;   // Data to/from datapath
+    logic   [15:0]  Data_FromSRAM, Data_ToSRAM; // Data to/from SRAM chip
+    logic   [15:0]  Data_ToHexDisplays;         // "Video" output
+    logic   [15:0]  Data_FromSwitches;          // "Keyboard" input
+    assign          Data_FromSwitches = SW[15:0];
 
     // eLC-3 datapath
     Datapath dp
     (
         .Clk(CLOCK_50),
-        .In(To_CPU),
-        .Out(From_CPU),
+        .In(Data_ToCPU),
+        .Out(Data_FromCPU),
         .*
     );
     
@@ -72,11 +77,18 @@ module elc3
     MemoryControlUnit memCtl
     (
         .Clk(CLOCK_50),
-        .Data_FromCPU(From_CPU),
-        .Data_ToCPU(To_CPU),
-        .Data_FromKeyboard(From_Switches),
-        .Data_ToVideo(To_HexDisplays),
+        .Data_FromKeyboard(Data_FromSwitches),
+        .Data_ToVideo(Data_ToHexDisplays),
         .*
+    );
+    
+    BidirectionalTriState memTristate
+    (
+        .Clk(CLOCK_50),
+        .WriteEnable(~SRAM_WE_N),
+        .In(Data_ToSRAM),
+        .Out(Data_FromSRAM),
+        .Data(SRAM_DQ)
     );
     
     // SRAM emulation
@@ -95,39 +107,23 @@ module elc3
     );
 
     // 7-segment display converters
-    HexDriver hx0(.In(To_HexDisplays[3:0]),   .Out(HEX0));
-    HexDriver hx1(.In(To_HexDisplays[7:4]),   .Out(HEX1));
-    HexDriver hx2(.In(To_HexDisplays[11:8]),  .Out(HEX2));
-    HexDriver hx3(.In(To_HexDisplays[15:12]), .Out(HEX3));
+    HexDriver hx0(.In(Data_ToHexDisplays[3:0]), .Out(HEX0));
+    HexDriver hx1(.In(Data_ToHexDisplays[7:4]), .Out(HEX1));
+    HexDriver hx2(.In(Data_ToHexDisplays[11:8]), .Out(HEX2));
+    HexDriver hx3(.In(Data_ToHexDisplays[15:12]), .Out(HEX3));
 
     HexDriver hx4(.In(Opcode), .Out(HEX4));
 
-    // Switch synchronizer
-    Synchronizer #(16) syncSW
-    (
-        .Clk(CLOCK_50),
-        .In(SW[15:0]),
-        .Out(From_Switches)
-    );
-
     // Reset, Run, and Continue signal synchronizers
-    Synchronizer syncReset
-    (
-        .Clk(CLOCK_50),
-        .In(~KEY[0]),
-        .Out(Reset)
-    );
-    Synchronizer syncRun
-    (
-        .Clk(CLOCK_50),
-        .In(~KEY[3]),
-        .Out(Run)
-    );
-    Synchronizer syncContinue
-    (
-        .Clk(CLOCK_50),
-        .In(~KEY[2]),
-        .Out(Continue)
-    );
+    Synchronizer syncReset(.Clk(CLOCK_50), .In(~KEY[0]), .Out(Reset));
+    Synchronizer syncRun(.Clk(CLOCK_50), .In(~KEY[3]), .Out(Run));
+    Synchronizer syncContinue(.Clk(CLOCK_50), .In(~KEY[2]), .Out(Continue));
+    
+    // Memory control signal synchronizers
+    Synchronizer syncCE(.Clk(CLOCK_50), .In(~Mem_CE), .Out(SRAM_CE_N));
+    Synchronizer syncOE(.Clk(CLOCK_50), .In(~Mem_OE), .Out(SRAM_OE_N));
+    Synchronizer syncWE(.Clk(CLOCK_50), .In(~Mem_WE), .Out(SRAM_WE_N));
+    Synchronizer syncLB(.Clk(CLOCK_50), .In(~Mem_LB), .Out(SRAM_LB_N));
+    Synchronizer syncUB(.Clk(CLOCK_50), .In(~Mem_UB), .Out(SRAM_UB_N));
 
 endmodule
