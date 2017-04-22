@@ -368,8 +368,8 @@ module ControlUnit
                 R_W = 1'b1;
             end
             State_16_R: begin
-                MIO_EN = 1'b1;
-                R_W = 1'b1;
+                MIO_EN = 1'b0;
+                R_W = 1'b0;
             end
             
             /* -- LD/LDR/LDI -- */
