@@ -20,9 +20,7 @@ module BidirectionalTriState #(N = 16)
         DataOut_Buffer <= In;
     end
     
-    assign Out = DataIn_Buffer;
-    
-    // Write output from buffer; output Hi-Z when not writing
     assign Data = (WriteEnable) ? DataOut_Buffer : {N{1'bZ}};
+    assign Out = DataIn_Buffer;
 
 endmodule
