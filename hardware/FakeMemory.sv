@@ -41,11 +41,11 @@ module FakeMemory
             MemoryArray[1]  <= 16'b0001_000_000_1_00011;    // ADD R0,R0,#3
             MemoryArray[2]  <= 16'b0001_000_000_1_00100;    // ADD R0,R0,#4
             MemoryArray[3]  <= 16'b0001_000_000_1_00101;    // ADD R0,R0,#5
-            MemoryArray[4]  <= 16'b0010_001_000000011;      // LD  R1,#3
+            MemoryArray[4]  <= 16'b0010_001_000000010;      // LD  R1,#3
             MemoryArray[5]  <= 16'b0111_000_001_000000;     // STR R0,R1,#0
-            MemoryArray[6]  <= 16'b0010_010_000000010;      // LD  R2,#2
-            MemoryArray[7]  <= 16'b1101_000000000000;       // HALT
-            MemoryArray[8]  <= 16'h0009;
+            MemoryArray[6]  <= 16'b1101_000000000000;       // HALT
+            MemoryArray[7]  <= 16'hFE06;
+            MemoryArray[8]  <= 16'h0000;
             MemoryArray[9]  <= 16'h0000;
             MemoryArray[10] <= 16'h0000;
             MemoryArray[11] <= 16'h0000;
