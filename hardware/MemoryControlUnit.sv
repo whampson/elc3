@@ -22,15 +22,25 @@ module MemoryControlUnit
 );
 
     // Keyboard data and status; display data and status
-    logic           LD_KBSR;
-    logic           LD_DDR, LD_DSR;
-    logic   [15:0]  KBDR, KBSR;
-    logic   [15:0]  DDR, DSR;
+//    logic           LD_KBSR;
+//    logic           LD_DDR, LD_DSR;
+//    logic   [15:0]  KBDR, KBSR;
+//    logic   [15:0]  DDR, DSR;
+//    
+//    // Input MUX select signal
+//    logic   [1:0]   INMUX;
+
+    logic   [15:0]  DDR, DDR_In;
     
-    // Input MUX select signal
-    logic   [1:0]   INMUX;
+    always_ff @(posedge Clk) begin
+        if (Reset)
+            DDR <= 16'h0000;
+        else
+            DDR <= DDR_In;
+    end
     
     assign Data_ToSRAM = Data_FromCPU;
+    assign Data_ToCPU = Data_FromSRAM;
     assign Data_ToVideo = DDR;
     
     assign Mem_CE = 1'b1;
@@ -39,44 +49,46 @@ module MemoryControlUnit
     
     // Memory-mapped I/O logic
     always_comb begin
-        LD_KBSR     = 1'b0;
-        LD_DDR      = 1'b0;
-        LD_DSR      = 1'b0;
-        INMUX       = 2'b00;
+//        LD_KBSR     = 1'b0;
+//        LD_DDR      = 1'b0;
+//        LD_DSR      = 1'b0;
+//        INMUX       = 2'b00;
         Mem_OE      = 1'b0;
         Mem_WE      = 1'b0;
+        DDR_In      = DDR;
         
         unique case (Address)
             // Read/write KBSR
             16'hFE00: begin
-                if (MIO_EN) begin
-                    if (R_W)
-                        LD_KBSR = 1'b1;
-                    else
-                        INMUX = 2'b01;
-                end
+//                if (MIO_EN) begin
+//                    if (R_W)
+//                        LD_KBSR = 1'b1;
+//                    else
+//                        INMUX = 2'b01;
+//                end
             end
             
             // Read KBDR
             16'hFE02: begin
-                if (MIO_EN)
-                    INMUX = 2'b10;
+//                if (MIO_EN)
+//                    INMUX = 2'b10;
             end
             
             // Read/write DSR
             16'hFE04: begin
-                if (MIO_EN) begin
-                    if (R_W)
-                        LD_DSR = 1'b1;
-                    else
-                        INMUX = 2'b11;
-                end
+//                if (MIO_EN) begin
+//                    if (R_W)
+//                        LD_DSR = 1'b1;
+//                    else
+//                        INMUX = 2'b11;
+//                end
             end
             
             // Write DDR
             16'hFE06: begin
                 if (MIO_EN && R_W) begin
-                    LD_DDR = 1'b1;
+//                    LD_DDR = 1'b1;
+                    DDR_In = Data_FromCPU;
                 end
             end
             
@@ -87,58 +99,58 @@ module MemoryControlUnit
                         Mem_WE = 1'b1;
                     else begin
                         Mem_OE = 1'b1;
-                        INMUX = 2'b00;
+//                        INMUX = 2'b00;
                     end
                 end
             end
         endcase
     end
     
-    Register        _KBDR
-    (
-        .Clk(Clk),
-        .Reset(Reset),
-        .In(Data_FromKeyboard),
-        .Out(KBDR),
-        .Load(1'b1)
-    );
-    
-    Register        _KBSR
-    (
-        .Clk(Clk),
-        .Reset(Reset),
-        .In(Data_FromCPU),
-        .Out(KBSR),
-        .Load(LD_KBSR)
-    );
-    
-    Register        _DDR
-    (
-        .Clk(Clk),
-        .Reset(Reset),
-        .In(Data_FromCPU),
-        .Out(DDR),
-        .Load(LD_DDR)
-    );
-    
-    Register        _DSR
-    (
-        .Clk(Clk),
-        .Reset(Reset),
-        .In(Data_FromCPU),
-        .Out(DSR),
-        .Load(LD_DSR)
-    );
-
-    Mux_4to1        _INMUX
-    (
-        .In0(Data_FromSRAM),
-        .In1(KBSR),
-        .In2(KBDR),
-        .In3(DSR),
-        .Out(Data_ToCPU),
-        .Select(INMUX)
-    );
+//    Register        _KBDR
+//    (
+//        .Clk(Clk),
+//        .Reset(Reset),
+//        .In(Data_FromKeyboard),
+//        .Out(KBDR),
+//        .Load(1'b1)
+//    );
+//    
+//    Register        _KBSR
+//    (
+//        .Clk(Clk),
+//        .Reset(Reset),
+//        .In(Data_FromCPU),
+//        .Out(KBSR),
+//        .Load(LD_KBSR)
+//    );
+//    
+//    Register        _DDR
+//    (
+//        .Clk(Clk),
+//        .Reset(Reset),
+//        .In(Data_FromCPU),
+//        .Out(DDR),
+//        .Load(LD_DDR)
+//    );
+//    
+//    Register        _DSR
+//    (
+//        .Clk(Clk),
+//        .Reset(Reset),
+//        .In(Data_FromCPU),
+//        .Out(DSR),
+//        .Load(LD_DSR)
+//    );
+//
+//    Mux_4to1        _INMUX
+//    (
+//        .In0(Data_FromSRAM),
+//        .In1(KBSR),
+//        .In2(KBDR),
+//        .In3(DSR),
+//        .Out(Data_ToCPU),
+//        .Select(INMUX)
+//    );
     
 //    // Tri-state buffer for data lines between eLC-3 memory control logic and SRAM chip
 //    BidirectionalTriState memTristate
