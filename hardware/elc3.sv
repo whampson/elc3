@@ -33,12 +33,14 @@ module elc3
     
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
-    logic           GatePC, GateMDR, GateALU, GateMARMUX;                // Bus gates
+    logic           GatePC, GateMDR, GateMUL, GateALU, GateMARMUX;       // Bus gates
     logic           ADDR1MUX;                                            // Mux select signals
     logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX;                      // Mux select signals
     logic           SR2MUX, MARMUX;                                      // Mux select signal
     logic   [1:0]   ALUK;                                                // ALU function select signal
     logic           MIO_EN, R_W;                                         // RAM operation signals
+    logic           MUL_EN;
+    logic           MUL_R;
     logic           BEN;
     logic           IR_5;
 	logic			IR_11;
