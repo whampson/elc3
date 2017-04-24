@@ -13,7 +13,7 @@ module FakeMemory
     inout   wire    [15:0]  DQ
 );
 
-    parameter NumWords = 16;
+    parameter NumWords = 64;
     parameter AddrWidth = $clog2(NumWords);
 
     logic   [15:0]  MemoryArray[NumWords-1:0];
@@ -37,14 +37,14 @@ module FakeMemory
     always_ff @(posedge Clk) begin
         if (Reset) begin
             // Initial memory contents
-            MemoryArray[0]  <= 16'b0101_000_000_1_00000;    // AND R0,R0,#0
-            MemoryArray[1]  <= 16'b0001_000_000_1_01111;    // ADD R0,R0,#15
-            MemoryArray[2]  <= 16'h0000;                    // NOP
-            MemoryArray[3]  <= 16'h0000;                    //  |
-            MemoryArray[4]  <= 16'h0000;                    //  v
-            MemoryArray[5]  <= 16'h0000;
-            MemoryArray[6]  <= 16'h0000;
-            MemoryArray[7]  <= 16'h0000;
+            MemoryArray[0]  <= 16'b0000_0000_0000_0000;     // NOP
+            MemoryArray[1]  <= 16'b1010_111_000000001;      // LDI R7,#1
+            MemoryArray[2]  <= 16'b1100_000_111_000000;     // JMP R7
+            MemoryArray[3]  <= 16'hFE02;
+            MemoryArray[4]  <= 16'h0000;
+            MemoryArray[5]  <= 16'b0001_011_001_1_01010;    // ADD R3,R1,#10
+            MemoryArray[6]  <= 16'b1011_011_111111101;      // STI R3,#-3
+            MemoryArray[7]  <= 16'b1100_000_111_000000;     // RET
             MemoryArray[8]  <= 16'h0000;
             MemoryArray[9]  <= 16'h0000;
             MemoryArray[10] <= 16'h0000;
@@ -52,9 +52,57 @@ module FakeMemory
             MemoryArray[12] <= 16'h0000;
             MemoryArray[13] <= 16'h0000;
             MemoryArray[14] <= 16'h0000;
-            MemoryArray[15] <= 16'h0000;                    // NOP
+            MemoryArray[15] <= 16'h0000;
+            MemoryArray[16] <= 16'h0000;
+            MemoryArray[17] <= 16'h0000;
+            MemoryArray[18] <= 16'h0000;
+            MemoryArray[19] <= 16'h0000;
+            MemoryArray[20] <= 16'h0000;
+            MemoryArray[21] <= 16'h0000;
+            MemoryArray[22] <= 16'h0000;
+            MemoryArray[23] <= 16'h0000;
+            MemoryArray[24] <= 16'h0000;
+            MemoryArray[25] <= 16'h0000;
+            MemoryArray[26] <= 16'h0000;
+            MemoryArray[27] <= 16'h0000;
+            MemoryArray[28] <= 16'h0000;
+            MemoryArray[29] <= 16'h0000;
+            MemoryArray[30] <= 16'h0000;
+            MemoryArray[31] <= 16'h0000;
+            MemoryArray[32] <= 16'h0000;
+            MemoryArray[33] <= 16'h0000;
+            MemoryArray[34] <= 16'h0000;
+            MemoryArray[35] <= 16'h0000;
+            MemoryArray[36] <= 16'h0000;
+            MemoryArray[37] <= 16'h0030;                    // HALT trapvector
+            MemoryArray[38] <= 16'h0000;
+            MemoryArray[39] <= 16'h0000;
+            MemoryArray[40] <= 16'h0000;
+            MemoryArray[41] <= 16'h0000;
+            MemoryArray[42] <= 16'h0000;
+            MemoryArray[43] <= 16'h0000;
+            MemoryArray[44] <= 16'h0000;
+            MemoryArray[45] <= 16'h0000;
+            MemoryArray[46] <= 16'h0000;
+            MemoryArray[47] <= 16'h0000;
+            MemoryArray[48] <= 16'b1101_000000000000;       // HALT
+            MemoryArray[49] <= 16'h0000;
+            MemoryArray[50] <= 16'h0000;
+            MemoryArray[51] <= 16'h0000;
+            MemoryArray[52] <= 16'h0000;
+            MemoryArray[53] <= 16'h0000;
+            MemoryArray[54] <= 16'h0000;
+            MemoryArray[55] <= 16'h0000;
+            MemoryArray[56] <= 16'h0000;
+            MemoryArray[57] <= 16'h0000;
+            MemoryArray[58] <= 16'h0000;
+            MemoryArray[59] <= 16'h0000;
+            MemoryArray[60] <= 16'h0000;
+            MemoryArray[61] <= 16'h0000;
+            MemoryArray[62] <= 16'h0000;
+            MemoryArray[63] <= 16'h0000;
         end
-        else if (~CE && OE && ~WE && ADDR[19:AddrWidth] == {19-AddrWidth+1{1'b0}}) begin
+        else if (~CE && OE && ~WE && ADDR[19:AddrWidth] == {19-AddrWidth{1'b0}}) begin
             // Write to memory, but only if address is in range
             if (~UB)
                 MemoryArray[ADDR[AddrWidth-1:0]][15:8] <= DQ[15:8];

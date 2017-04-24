@@ -1,5 +1,5 @@
 /**
- * The eLC-3 arithmetic and loguc unit.
+ * The eLC-3 arithmetic and logic unit.
  *
  * @author Wes Hampson, Xavier Rocha
  */
