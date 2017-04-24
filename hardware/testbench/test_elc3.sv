@@ -5,7 +5,7 @@ module test_elc3();
     logic   [17:0]  SW;
     logic   [8:0]   LEDG;
     logic   [17:0]  LEDR;
-    logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4;
+    logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7;
     logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N;
     logic           SRAM_LB_N, SRAM_UB_N;
     logic   [19:0]  SRAM_ADDR;
@@ -60,7 +60,7 @@ module test_elc3();
     
     initial begin : TEST_VECTORS
         // Initialize
-        SW = 16'h0000;
+        SW = 16'h0030;
         //KEY = 4'h0;
         Run = 1'b0;
         Reset = 1'b1;

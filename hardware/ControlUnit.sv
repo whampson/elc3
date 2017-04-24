@@ -80,7 +80,8 @@ module ControlUnit
         //State_34        = 8'd34,
         State_35        = 8'd35,
         
-        INVALID         = 8'd254,
+        INVALID         = 8'd253,
+        START           = 8'd254,
         HALT            = 8'd255
     } State, Next_State;
     
@@ -98,7 +99,7 @@ module ControlUnit
         
         unique case (State)
             /* ===== FETCH ===== */
-            State_18:       Next_State = State_33_nR1;
+            State_18:Next_State = State_33_nR1;
             State_33_nR1:   Next_State = State_33_nR2;
             State_33_nR2:   Next_State = State_33_R;
             State_33_R:     Next_State = State_35;
@@ -119,17 +120,17 @@ module ControlUnit
                         4'b0001:    Next_State = State_01;      // ADD
                         4'b0010:    Next_State = State_02;      // LD
                         4'b0011:    Next_State = State_03;      // ST
-                        4'b0100:    Next_State = State_04;      // JSR
+                        4'b0100:    Next_State = State_04;      // *JSR/JSRR
                         4'b0101:    Next_State = State_05;      // AND
                         4'b0110:    Next_State = State_06;      // LDR
                         4'b0111:    Next_State = State_07;      // STR
                         4'b1001:    Next_State = State_09;      // NOT
                         4'b1010:    Next_State = State_10;      // LDI
                         4'b1011:    Next_State = State_11;      // STI
-                        4'b1100:    Next_State = State_12;      // JMP
-                        4'b1101:    Next_State = State_13;      // MUL
-                        4'b1110:    Next_State = State_14;      // LEA
-                        4'b1111:    Next_State = State_15;      // TRAP
+                        4'b1100:    Next_State = State_12;      // *JMP
+                        4'b1101:    Next_State = State_13;      // *MUL
+                        4'b1110:    Next_State = State_14;      // *LEA
+                        4'b1111:    Next_State = State_15;      // *TRAP
                         default:    Next_State = INVALID;       // (invalid opcode)
                     endcase
                 //end
@@ -138,74 +139,74 @@ module ControlUnit
             end
             
             /* ===== EXECUTE =====*/
-            // BR
+            /* -- BR -- */
             State_00:       Next_State = (BEN) ? State_22 : State_18;   // If BEN is 1, branch to address, continue otherwise
             State_22:       Next_State = State_18;
             
-            // ADD
+            /* -- ADD -- */
             State_01:       Next_State = State_18;
             
-            // LD
+            /* -- LD -- */
             State_02:       Next_State = State_25_nR1;
             
-            // ST
+            /* -- ST -- */
             State_03:       Next_State = State_23;
             
-            // JSR
+            /* -- JSR/JSRR -- */
             State_04:       Next_State = (IR_11) ? State_21 : State_20; // If IR[11] is 1, use PC + off11, otherwise use BaseR.
             State_20:       Next_State = State_18;
             State_21:       Next_State = State_18;
             
-            // AND
+            /* -- AND -- */
             State_05:       Next_State = State_18;
             
-            // LDR
+            /* -- LDR -- */
             State_06:       Next_State = State_25_nR1;
             
-            // STR
+            /* -- STR -- */
             State_07:       Next_State = State_23;
             
-            // NOT
+            /* -- NOT -- */
             State_09:       Next_State = State_18;
             
-            // LDI
+            /* -- LDI -- */
             State_10:       Next_State = State_24_nR1;
             State_24_nR1:   Next_State = State_24_nR2;
             State_24_nR2:   Next_State = State_24_R;
             State_24_R:     Next_State = State_26;
             State_26:       Next_State = State_25_nR1;
             
-            // STI
+            /* -- STI -- */
             State_11:       Next_State = State_29_nR1;
             State_29_nR1:   Next_State = State_29_nR2;
             State_29_nR2:   Next_State = State_29_R;
             State_29_R:     Next_State = State_31;
             State_31:       Next_State = State_23;
             
-            // JMP
+            /* -- JMP -- */
             State_12:       Next_State = State_18;
             
-            // MUL
+            /* -- MUL -- */
             // TODO: states
             State_13:       Next_State = HALT;  // Go to HALT for now
             
-            // LEA
+            /* -- LEA -- */
             State_14:       Next_State = State_18;
             
-            // TRAP
+            /* -- TRAP -- */
             State_15:       Next_State = State_28_nR1;
             State_28_nR1:   Next_State = State_28_nR2;
             State_28_nR2:   Next_State = State_28_R;
             State_28_R:     Next_State = State_30;
             State_30:       Next_State = State_18;
             
-            // ST/STR/STI (memory write)
+            /* -- ST/STR/STI (memory write) -- */
             State_23:       Next_State = State_16_nR1;
             State_16_nR1:   Next_State = State_16_nR2;
             State_16_nR2:   Next_State = State_16_R;
             State_16_R:     Next_State = State_18;
             
-            // LD/LDR/LDI (memory read)
+            /* -- LD/LDR/LDI (memory read) -- */
             State_25_nR1:   Next_State = State_25_nR2;
             State_25_nR2:   Next_State = State_25_R;
             State_25_R:     Next_State = State_27;
@@ -220,10 +221,18 @@ module ControlUnit
                     Next_State = INVALID;
             end
             
+            /* ===== START (begin execution) ===== */
+            START: begin
+                if (~Run)
+                    Next_State = State_18;
+                else
+                    Next_State = START;
+            end
+            
             /* ===== HALT (end execution) ===== */
             HALT: begin
                 if (Run)
-                    Next_State = State_18;
+                    Next_State = START;
                 else
                     Next_State = HALT;
             end
@@ -292,15 +301,28 @@ module ControlUnit
                 LD_BEN = 1'b1;      // Allow BEN register to be loaded
             
             /* ===== EXECUTE ===== */
+            /* -- BR -- */
+            // [BEN]
+            State_00: begin
+                // Nothing
+            end
+            // PC <- PC + off9
+            State_22: begin
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b10;
+                PCMUX = 2'b10;
+                LD_PC = 1'b1;
+            end
+            
             /* -- ADD -- */
             // DR <- SR1 + OP2, setCC
             State_01: begin
-                DRMUX = 2'b00;      // Select DR from IR[11:9]
-                SR1MUX = 2'b01;     // Select SR1 from IR[8:6]
-                ALUK = 2'b00;       // Set ALU to add SR1 and SR2
-                GateALU = 1'b1;     // Allow ALU output onto the bus
-                LD_REG = 1'b1;      // Allow DR to be loaded with contents of bus
-                LD_CC = 1'b1;       // Set condition codes (NZP) based on contents of bus
+                DRMUX = 2'b00;
+                SR1MUX = 2'b01;
+                ALUK = 2'b00;
+                GateALU = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
             end
             
             /* -- LD -- */
@@ -308,6 +330,61 @@ module ControlUnit
             State_02: begin
                 ADDR1MUX = 1'b0;
                 ADDR2MUX = 2'b10;
+                MARMUX = 1'b1;
+                GateMARMUX = 1'b1;
+                LD_MAR = 1'b1;
+            end
+            
+            /* -- ST -- */
+            // MAR <- PC + off9
+            State_03: begin
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b10;
+                MARMUX = 1'b1;
+                GateMARMUX = 1'b1;
+                LD_MAR = 1'b1;
+            end
+            
+            /* -- JSR/JSRR -- */
+            // R7 <- PC
+            State_04: begin
+                DRMUX = 2'b01;
+                GatePC = 1'b1;
+                LD_REG = 1'b1;
+            end
+            // PC <- BaseR (JSRR)
+            State_20: begin
+                SR1MUX = 2'b01;
+                ADDR1MUX = 1'b1;
+                ADDR2MUX = 2'b00;
+                PCMUX = 2'b10;
+                LD_PC = 1'b1;
+            end
+            // PC <- PC + off11 (JSR)
+            State_21: begin
+                PCMUX = 2'b10;
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b11;
+                LD_PC = 1'b1;
+            end
+            
+            /* -- AND -- */
+            // DR <- SR1 & OP2, setCC
+            State_05: begin
+                DRMUX = 2'b00;
+                SR1MUX = 2'b01;
+                ALUK = 2'b01;
+                GateALU = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
+            end
+            
+            /* -- LDR -- */
+            // MAR <- BaseR + off6
+            State_06: begin
+                SR1MUX = 2'b01;
+                ADDR1MUX = 1'b1;
+                ADDR2MUX = 2'b01;
                 MARMUX = 1'b1;
                 GateMARMUX = 1'b1;
                 LD_MAR = 1'b1;
@@ -322,6 +399,17 @@ module ControlUnit
                 MARMUX = 1'b1;
                 GateMARMUX = 1'b1;
                 LD_MAR = 1'b1;
+            end
+            
+            /* -- NOT -- */
+            // DR <- NOT SR, setCC
+            State_09: begin
+                DRMUX = 2'b00;
+                SR1MUX = 2'b01;
+                ALUK = 2'b10;
+                GateALU = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
             end
             
             /* -- LDI -- */
@@ -346,8 +434,84 @@ module ControlUnit
             end
             // MAR <- MDR
             State_26: begin
+                GateMDR = 1'b1;
+                LD_MAR = 1'b1;
+            end
+            
+            /* -- STI -- */
+            // MAR <- PC + off9
+            State_11: begin
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b10;
+                MARMUX = 1'b1;
+                GateMARMUX = 1'b1;
+                LD_MAR = 1'b1;
+            end
+            // MDR <- M[MAR]
+            State_29_nR1: begin
+                MIO_EN = 1'b1;
+            end
+            State_29_nR2: begin
+                MIO_EN = 1'b1;
+            end
+            State_29_R: begin
+                MIO_EN = 1'b1;
+                LD_MDR = 1'b1;
+            end
+            // MAR <- MDR
+            State_31: begin
                 LD_MAR = 1'b1;
                 GateMDR = 1'b1;
+            end
+            
+            /* -- JMP -- */
+            // PC <- BaseR
+            State_12: begin
+                SR1MUX = 2'b01;
+                ADDR1MUX = 1'b1;
+                ADDR2MUX = 2'b00;
+                PCMUX = 2'b10;
+                LD_PC = 1'b1;
+            end
+            
+            /* -- LEA -- */
+            // DR <- PC + off9; setCC
+            State_14: begin
+                DRMUX = 2'b00;
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b10;
+                MARMUX = 1'b1;
+                GateMARMUX = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
+            end
+            
+            /* -- TRAP -- */
+            // MAR <- ZEXT(IR[7:0])
+            State_15: begin
+                MARMUX = 1'b0;
+                GateMARMUX = 1'b1;
+                LD_MAR = 1'b1;
+            end
+            // MDR <- M[MAR]; R7 <- PC
+            State_28_nR1: begin
+                MIO_EN = 1'b1;
+                DRMUX = 2'b01;
+                GatePC = 1'b1;
+                LD_REG = 1'b1;
+            end
+            State_28_nR2: begin
+                MIO_EN = 1'b1;
+            end
+            State_28_R: begin
+                MIO_EN = 1'b1;
+                LD_MDR = 1'b1;
+            end
+            // PC <- MDR
+            State_30: begin
+                GateMDR = 1'b1;
+                PCMUX = 2'b01;
+                LD_PC = 1'b1;
             end
             
             /* -- ST/STR/STI -- */
@@ -355,8 +519,8 @@ module ControlUnit
             State_23: begin
                 SR1MUX = 2'b00;
                 ALUK = 2'b11;
-                LD_MDR = 1'b1;
                 GateALU = 1'b1;
+                LD_MDR = 1'b1;
             end
             // M[MAR] <- MDR
             State_16_nR1: begin
@@ -386,9 +550,9 @@ module ControlUnit
             end
             // DR <- MDR; setCC
             State_27: begin
+                GateMDR = 1'b1;
                 LD_REG = 1'b1;
                 LD_CC = 1'b1;
-                GateMDR = 1'b1;
             end
             
             INVALID:

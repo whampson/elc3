@@ -15,7 +15,7 @@ module Datapath
     input   logic           SR2MUX, MARMUX,                                      // Mux select signal
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
     input   logic           MIO_EN,                                              // RAM operation signals
-    output  logic   [15:0]  Out,                                                 // Data to RAM
+    output  logic   [15:0]  Out, PC, R0, R1,                                                // Data to RAM
     output  logic   [15:0]  Address,                                             // Current RAM address
     output  logic           BEN,                                                 // Branch enable signal
     output  logic           IR_5,                                                // Bit 5 of instruction register
@@ -26,7 +26,7 @@ module Datapath
     /* ==== Internal signals ==== */
     logic   [15:0]  Bus;                                // The main data bus between CPU components
     logic   [3:0]   Gate;                               // Concatenation of Gate* signals
-    logic   [15:0]  MAR, MDR, IR, PC;                   // The current contents of MAR, MDR, IR, and PC
+    logic   [15:0]  MAR, MDR, IR/*, PC*/;                   // The current contents of MAR, MDR, IR, and PC
     logic   [2:0]   SR1MUX_Out, DRMUX_Out;              // Outputs of general purpose register selection MUXes
     logic   [15:0]  SR2MUX_Out;                         // Output of ALU input B data selection MUX
     logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out;  // Outputs of MAR, MDR, and PC register data selection MUXes
@@ -143,7 +143,9 @@ module Datapath
         .SR1(SR1MUX_Out),
         .SR2(IR[2:0]),
         .SR1_Out(SR1),
-        .SR2_Out(SR2)
+        .SR2_Out(SR2),
+        .R0(R0),            // DEBUG
+        .R1(R1)             // DEBUG
     );
     
     /* ==== The arithmetic and logic unit ==== */

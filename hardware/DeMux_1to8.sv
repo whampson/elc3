@@ -14,14 +14,14 @@ module DeMux_1to8 #(N = 16)
 );
 
     always_comb begin
-        Out0 = {N{1'bZ}};
-        Out1 = {N{1'bZ}};
-        Out2 = {N{1'bZ}};
-        Out3 = {N{1'bZ}};
-        Out4 = {N{1'bZ}};
-        Out5 = {N{1'bZ}};
-        Out6 = {N{1'bZ}};
-        Out7 = {N{1'bZ}};
+        Out0 = {N{1'b0}};
+        Out1 = {N{1'b0}};
+        Out2 = {N{1'b0}};
+        Out3 = {N{1'b0}};
+        Out4 = {N{1'b0}};
+        Out5 = {N{1'b0}};
+        Out6 = {N{1'b0}};
+        Out7 = {N{1'b0}};
         
         case (Select)
             3'b000: Out0 = In;

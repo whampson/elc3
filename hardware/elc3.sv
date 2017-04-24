@@ -12,7 +12,7 @@ module elc3
     input           [17:0]  SW,
     output  logic   [8:0]   LEDG,
     output  logic   [17:0]  LEDR,
-    output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4,
+    output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7,
     output  logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N,
     output  logic           SRAM_LB_N, SRAM_UB_N,
     output  logic   [19:0]  SRAM_ADDR,
@@ -29,7 +29,7 @@ module elc3
     logic           Halted, Paused, Invalid;
     assign          LEDG[0] = Halted;
     assign          LEDG[1] = Paused;
-    assign          LEDR[0] = Invalid;
+    assign          LEDR[17] = Invalid;
     
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
@@ -44,6 +44,8 @@ module elc3
 	logic			IR_11;
     logic   [3:0]   IR_15_12;
     
+    logic   [15:0]  PC, R0, R1;
+    
     // eLC-3 memory signals
     logic   [15:0]  Address;
     logic           Mem_CE, Mem_OE, Mem_WE;
@@ -51,13 +53,23 @@ module elc3
     assign          SRAM_ADDR = { 4'b0000, Address };
     
     // eLC-3 data signals
-    logic   [15:0]  Data_FromCPU, Data_ToCPU;   // Data to/from datapath
-    logic   [15:0]  Data_FromSRAM, Data_ToSRAM; // Data to/from SRAM chip
-    logic   [15:0]  Data_ToHexDisplays;         // "Video" output
-    logic   [15:0]  Data_FromSwitches;          // "Keyboard" input
+    logic   [15:0]  Data_FromCPU, Data_ToCPU;           // Data to/from datapath
+    logic   [15:0]  Data_FromSRAM, Data_ToSRAM;         // Data to/from SRAM chip
+    logic   [15:0]  Data_FromKeyboard, Data_ToVideo;    // I/O
+    logic   [15:0]  Data_ToHexDisplays0, Data_ToHexDisplays1;
+    logic   [15:0]  Data_FromSwitches;                  // "Keyboard" input
     assign          Data_FromSwitches = SW[15:0];
+    assign          Data_FromKeyboard = Data_FromSwitches;
+    //assign          Data_ToHexDisplays = Data_ToVideo;
+    assign          Data_ToHexDisplays0 = PC;
+    assign          Data_ToHexDisplays1 = Data_ToVideo;
+    //assign          LEDR[15:0] = Data_ToVideo;
+    assign          LEDG[7:4] = Opcode;
+    
+//    assign          Data_FromCPU = 16'hCAFE;
+//    assign          Address = Data_FromSwitches;
 
-    // eLC-3 datapath
+//    // eLC-3 datapath
     Datapath dp
     (
         .Clk(CLOCK_50),
@@ -77,8 +89,6 @@ module elc3
     MemoryControlUnit memCtl
     (
         .Clk(CLOCK_50),
-        .Data_FromKeyboard(Data_FromSwitches),
-        .Data_ToVideo(Data_ToHexDisplays),
         .*
     );
     
@@ -93,26 +103,28 @@ module elc3
     
     // SRAM emulation
     // ===== Comment-out when synthesizing to FPGA!! =====a //
-    FakeMemory fakeMem
-    (
-        .Clk(CLOCK_50),
-        .Reset(Reset),
-        .CE(SRAM_CE_N),
-        .OE(SRAM_OE_N),
-        .WE(SRAM_WE_N),
-        .LB(SRAM_LB_N),
-        .UB(SRAM_UB_N),
-        .ADDR(SRAM_ADDR),
-        .DQ(SRAM_DQ)
-    );
+//    FakeMemory fakeMem
+//    (
+//        .Clk(CLOCK_50),
+//        .Reset(Reset),
+//        .CE(SRAM_CE_N),
+//        .OE(SRAM_OE_N),
+//        .WE(SRAM_WE_N),
+//        .LB(SRAM_LB_N),
+//        .UB(SRAM_UB_N),
+//        .ADDR(SRAM_ADDR),
+//        .DQ(SRAM_DQ)
+//    );
 
     // 7-segment display converters
-    HexDriver hx0(.In(Data_ToHexDisplays[3:0]), .Out(HEX0));
-    HexDriver hx1(.In(Data_ToHexDisplays[7:4]), .Out(HEX1));
-    HexDriver hx2(.In(Data_ToHexDisplays[11:8]), .Out(HEX2));
-    HexDriver hx3(.In(Data_ToHexDisplays[15:12]), .Out(HEX3));
-
-    HexDriver hx4(.In(Opcode), .Out(HEX4));
+    HexDriver hx0(.In(Data_ToHexDisplays1[3:0]), .Out(HEX0));
+    HexDriver hx1(.In(Data_ToHexDisplays1[7:4]), .Out(HEX1));
+    HexDriver hx2(.In(Data_ToHexDisplays1[11:8]), .Out(HEX2));
+    HexDriver hx3(.In(Data_ToHexDisplays1[15:12]), .Out(HEX3));
+    HexDriver hx4(.In(Data_ToHexDisplays0[3:0]), .Out(HEX4));
+    HexDriver hx5(.In(Data_ToHexDisplays0[7:4]), .Out(HEX5));
+    HexDriver hx6(.In(Data_ToHexDisplays0[11:8]), .Out(HEX6));
+    HexDriver hx7(.In(Data_ToHexDisplays0[15:12]), .Out(HEX7));
 
     // Reset, Run, and Continue signal synchronizers
     Synchronizer syncReset(.Clk(CLOCK_50), .In(~KEY[0]), .Out(Reset));
