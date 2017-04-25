@@ -1,5 +1,8 @@
 module test_elc3();
 
+    timeunit 10ns;
+    timeprecision 1ns;
+
     logic           CLOCK_50;
     logic   [3:0]   KEY;
     logic   [17:0]  SW;
@@ -60,7 +63,7 @@ module test_elc3();
     
     initial begin : TEST_VECTORS
         // Initialize
-        SW = 16'h0030;
+        SW = 16'h0005;
         //KEY = 4'h0;
         Run = 1'b0;
         Reset = 1'b1;
