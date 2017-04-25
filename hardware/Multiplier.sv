@@ -138,6 +138,10 @@ module Multiplier
         Counter_Next = Counter;
         
         case (State)
+            Wait: begin
+                // Nothing
+            end
+            
             Load: begin
                 CLR_A = 1'b1;
                 LD_B = 1'b1;
