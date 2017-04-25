@@ -9,18 +9,21 @@ module Datapath
     input   logic           Clk, Reset,
     input   logic   [15:0]  In,                                                  // Data from RAM
     input   logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC, // Register load signals
-    input   logic           GatePC, GateMDR, GateALU, GateMARMUX,                // Bus gates
+    input   logic           GatePC, GateMDR, GateMUL, GateALU, GateMARMUX,       // Bus gates
     input   logic           ADDR1MUX,                                            // Mux select signals
     input   logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX,                      // Mux select signals
     input   logic           SR2MUX, MARMUX,                                      // Mux select signal
     input   logic   [1:0]   ALUK,                                                // ALU function select signal
     input   logic           MIO_EN,                                              // RAM operation signals
-    output  logic   [15:0]  Out, PC, R0, R1,                                                // Data to RAM
+    input   logic           MUL_EN,                                              // Multiplier start signal
+    output  logic   [15:0]  Out,                                                 // Data to RAM
     output  logic   [15:0]  Address,                                             // Current RAM address
+    output  logic           MUL_R,                                               // Multiplier ready signal
     output  logic           BEN,                                                 // Branch enable signal
     output  logic           IR_5,                                                // Bit 5 of instruction register
 	output  logic           IR_11,												 // Bit 11 of instruction register
-    output  logic   [3:0]   IR_15_12                                             // Bits 15-12 of instruction register
+    output  logic   [3:0]   IR_15_12,                                            // Bits 15-12 of instruction register
+    output  logic   [15:0]  PC, R0, R1      // DEBUG
 );
 
     /* ==== Internal signals ==== */
@@ -32,6 +35,7 @@ module Datapath
     logic   [15:0]  MARMUX_Out, MDRMUX_Out, PCMUX_Out;  // Outputs of MAR, MDR, and PC register data selection MUXes
     logic   [15:0]  ADDR1MUX_Out, ADDR2MUX_Out;         // Outputs of memory addressing MUXes
     logic   [15:0]  ALU;                                // Output of the ALU
+    logic   [15:0]  MUL;                                // Output of 8-bit multiplier unit
     logic   [15:0]  SR1, SR2;                           // Contents of SR1 and SR2 from register file
     logic           BEN_In;                             // Next state of branch enable register
     logic           N, Z, P;                            // Current contents of condition code registers (CCs)
@@ -40,8 +44,9 @@ module Datapath
     assign IR_5     = IR[5];
 	assign IR_11	= IR[11];
     assign IR_15_12 = IR[15:12];
-    assign Out = MDR;                                   // Anything leaving the datapath comes from MDR
-    assign Address = MAR;                               // RAM address comes from MAR
+    
+    assign Out      = MDR;                              // Anything leaving the datapath comes from MDR
+    assign Address  = MAR;                              // RAM address comes from MAR
     
     /* ==== NZP logic ==== */
     assign N_In = Bus[15];
@@ -156,6 +161,18 @@ module Datapath
         .Fn(ALUK),
         .Out(ALU)
     );
+    
+    /* ==== The 8-bit multiplier unit ==== */
+    Multiplier      _MUL
+    (
+        .Clk(Clk),
+        .Reset(Reset),
+        .A(SR1[7:0]),
+        .B(SR2MUX_Out[7:0]),
+        .Out(MUL),
+        .Run(MUL_EN),
+        .Ready(MUL_R)
+    );
 
     /* ==== Multiplexer definitions ==== */
     // MUX for choosing where destination register selection should be read from
@@ -240,15 +257,16 @@ module Datapath
     
     // One-hot MUX for selecting which data line is currently allowed on the bus
     // (works like a tri-state buffer)
-    MuxOneHot_4to1  _GateMux
+    MuxOneHot_5to1  _GateMux
     (
         // Input order must follow 'Gate' definition (little-endian, see above)
         .In0(MARMUX_Out),
         .In1(ALU),
-        .In2(MDR),
-        .In3(PC),
+        .In2(MUL),
+        .In3(MDR),
+        .In4(PC),
         .Out(Bus),
-        .Select({ GatePC, GateMDR, GateALU, GateMARMUX })
+        .Select({ GatePC, GateMDR, GateMUL, GateALU, GateMARMUX })
     );
 
 endmodule

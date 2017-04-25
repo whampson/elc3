@@ -12,15 +12,17 @@ module test_datapath();
     logic           Clk, Reset;
     logic   [15:0]  In = 0;                                              // Data from RAM
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
-    logic           GatePC, GateMDR, GateALU, GateMARMUX;                // Bus gates
+    logic           GatePC, GateMDR, GateMUL, GateALU, GateMARMUX;       // Bus gates
     logic           ADDR1MUX;                                            // Mux select signals
     logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX;                      // Mux select signals
     logic           SR2MUX, MARMUX;                                      // Mux select signal
     logic   [1:0]   ALUK;                                                // ALU function select signal
+    logic           MUL_EN;                                              // Multiplier start signal
     logic           MIO_EN;                                              // RAM operation signals
     logic   [15:0]  Out;                                                 // Data to RAM
     logic   [15:0]  Address;                                             // Current RAM address
     logic           BEN;                                                 // Branch enable signal
+    logic           MUL_R;                                               // Multiplier ready signal
     logic           IR_5;                                                // Bit 5 of instruction register
 	logic           IR_11;												 // Bit 11 of instruction register
     logic   [3:0]   IR_15_12;                                            // Bits 15-12 of instruction register

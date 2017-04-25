@@ -7,18 +7,20 @@
 module ControlUnit
 (
     input   logic           Clk, Reset, Run, Continue,
+    input   logic           MUL_R,
     input   logic           BEN,
     input   logic           IR_5,
     input   logic           IR_11,
     input   logic   [3:0]   IR_15_12,
     output  logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC,
-    output  logic           GatePC, GateMDR, GateALU, GateMARMUX,
+    output  logic           GatePC, GateMDR, GateMUL, GateALU, GateMARMUX,
     output  logic           ADDR1MUX,
     output  logic   [1:0]   ADDR2MUX, PCMUX, DRMUX, SR1MUX,
     output  logic           SR2MUX, MARMUX,
     output  logic   [1:0]   ALUK,
     output  logic           MIO_EN, R_W,
-    output  logic           Halted, Paused, Invalid,
+    output  logic           MUL_EN,
+    output  logic           Halted, Paused, InvalidOp,
     output  logic   [3:0]   Opcode
 );
 
@@ -44,7 +46,9 @@ module ControlUnit
         State_10        = 8'd10,
         State_11        = 8'd11,
         State_12        = 8'd12,
-        State_13        = 8'd13,
+        State_13        = 8'd013,
+        State_13_nR     = 8'd113,
+        State_13_R      = 8'd213,
         State_14        = 8'd14,
         State_15        = 8'd15,
         State_16_nR1    = 8'd016,   // nR: State when data from memory is NOT ready
@@ -120,17 +124,17 @@ module ControlUnit
                         4'b0001:    Next_State = State_01;      // ADD
                         4'b0010:    Next_State = State_02;      // LD
                         4'b0011:    Next_State = State_03;      // ST
-                        4'b0100:    Next_State = State_04;      // *JSR/JSRR
+                        4'b0100:    Next_State = State_04;      // JSR/JSRR
                         4'b0101:    Next_State = State_05;      // AND
                         4'b0110:    Next_State = State_06;      // LDR
                         4'b0111:    Next_State = State_07;      // STR
                         4'b1001:    Next_State = State_09;      // NOT
                         4'b1010:    Next_State = State_10;      // LDI
                         4'b1011:    Next_State = State_11;      // STI
-                        4'b1100:    Next_State = State_12;      // *JMP
-                        4'b1101:    Next_State = State_13;      // *MUL
-                        4'b1110:    Next_State = State_14;      // *LEA
-                        4'b1111:    Next_State = State_15;      // *TRAP
+                        4'b1100:    Next_State = State_12;      // JMP
+                        4'b1101:    Next_State = State_13;      // MUL
+                        4'b1110:    Next_State = State_14;      // LEA
+                        4'b1111:    Next_State = State_15;      // TRAP
                         default:    Next_State = INVALID;       // (invalid opcode)
                     endcase
                 //end
@@ -187,8 +191,9 @@ module ControlUnit
             State_12:       Next_State = State_18;
             
             /* -- MUL -- */
-            // TODO: states
-            State_13:       Next_State = HALT;  // Go to HALT for now
+            State_13:       Next_State = State_13_nR;
+            State_13_nR:    Next_State = (MUL_R) ? State_13_R : State_13_nR;
+            State_13_R:     Next_State = State_18;
             
             /* -- LEA -- */
             State_14:       Next_State = State_18;
@@ -252,6 +257,7 @@ module ControlUnit
 
         GatePC      = 1'b0;
         GateMDR     = 1'b0;
+        GateMUL     = 1'b0;
         GateALU     = 1'b0;
         GateMARMUX  = 1'b0;
 
@@ -266,9 +272,11 @@ module ControlUnit
         MIO_EN      = 1'b0;
         R_W         = 1'b0;
         
+        MUL_EN      = 1'b0;
+        
         Halted      = 1'b0;
         Paused      = 1'b0;
-        Invalid     = 1'b0;
+        InvalidOp   = 1'b0;
 
         unique case (State)
             /* ===== FETCH ===== */
@@ -474,6 +482,24 @@ module ControlUnit
                 LD_PC = 1'b1;
             end
             
+            /* -- MUL -- */
+            // RMUL <- A * B
+            State_13: begin
+                SR1MUX = 2'b01;
+                MUL_EN = 1'b1;
+            end
+            // [MUL_R]
+            State_13_nR: begin
+                SR1MUX = 2'b01;
+            end
+            // DR <- RMUL; setCC
+            State_13_R: begin
+                DRMUX = 2'b00;
+                GateMUL = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
+            end
+            
             /* -- LEA -- */
             // DR <- PC + off9; setCC
             State_14: begin
@@ -556,7 +582,7 @@ module ControlUnit
             end
             
             INVALID:
-                Invalid = 1'b1;
+                InvalidOp = 1'b1;
             
             HALT:
                 Halted = 1'b1;
