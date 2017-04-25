@@ -584,6 +584,8 @@ set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 
+set_global_assignment -name QIP_FILE elc3_soc/synthesis/elc3_soc.qip
+set_global_assignment -name QSYS_FILE elc3_soc.qsys
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/elc3.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/ControlUnit.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Datapath.sv
@@ -607,4 +609,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_memcontro
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_regfile.sv
 set_global_assignment -name SDC_FILE elc3.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_elc3.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/VGA_controller.sv
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
