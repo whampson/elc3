@@ -165,6 +165,8 @@ module Datapath
     /* ==== The 8-bit multiplier unit ==== */
     Multiplier      _MUL
     (
+        .Clk(Clk),
+        .Reset(Reset),
         .A(SR1[7:0]),
         .B(SR2MUX_Out[7:0]),
         .Out(MUL),

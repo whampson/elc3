@@ -26,10 +26,10 @@ module elc3
     
     logic   [3:0]   Opcode;
     
-    logic           Halted, Paused, Invalid;
+    logic           Halted, Paused, InvalidOp;
     assign          LEDG[0] = Halted;
     assign          LEDG[1] = Paused;
-    assign          LEDR[17] = Invalid;
+    assign          LEDR[17] = InvalidOp;
     
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
@@ -60,6 +60,7 @@ module elc3
     logic   [15:0]  Data_FromKeyboard, Data_ToVideo;    // I/O
     logic   [15:0]  Data_ToHexDisplays0, Data_ToHexDisplays1;
     logic   [15:0]  Data_FromSwitches;                  // "Keyboard" input
+    
     assign          Data_FromSwitches = SW[15:0];
     assign          Data_FromKeyboard = Data_FromSwitches;
     //assign          Data_ToHexDisplays = Data_ToVideo;

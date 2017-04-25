@@ -20,7 +20,7 @@ module ControlUnit
     output  logic   [1:0]   ALUK,
     output  logic           MIO_EN, R_W,
     output  logic           MUL_EN,
-    output  logic           Halted, Paused, Invalid,
+    output  logic           Halted, Paused, InvalidOp,
     output  logic   [3:0]   Opcode
 );
 
@@ -276,7 +276,7 @@ module ControlUnit
         
         Halted      = 1'b0;
         Paused      = 1'b0;
-        Invalid     = 1'b0;
+        InvalidOp   = 1'b0;
 
         unique case (State)
             /* ===== FETCH ===== */
@@ -582,7 +582,7 @@ module ControlUnit
             end
             
             INVALID:
-                Invalid = 1'b1;
+                InvalidOp = 1'b1;
             
             HALT:
                 Halted = 1'b1;
