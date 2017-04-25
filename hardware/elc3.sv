@@ -46,7 +46,7 @@ module elc3
 	logic			IR_11;
     logic   [3:0]   IR_15_12;
     
-    logic   [15:0]  PC, R0, R1;
+    logic   [15:0]  PC, IR;
     
     // eLC-3 memory signals
     logic   [15:0]  Address;
@@ -63,16 +63,15 @@ module elc3
     
     assign          Data_FromSwitches = SW[15:0];
     assign          Data_FromKeyboard = Data_FromSwitches;
-    //assign          Data_ToHexDisplays = Data_ToVideo;
     assign          Data_ToHexDisplays0 = PC;
-    assign          Data_ToHexDisplays1 = Data_ToVideo;
-    //assign          LEDR[15:0] = Data_ToVideo;
-    assign          LEDG[7:4] = Opcode;
+    assign          Data_ToHexDisplays1 = IR;
+    assign          LEDR[15:0] = Data_ToVideo;
+    //assign          LEDG[7:4] = Opcode;
     
 //    assign          Data_FromCPU = 16'hCAFE;
 //    assign          Address = Data_FromSwitches;
 
-//    // eLC-3 datapath
+    // eLC-3 datapath
     Datapath dp
     (
         .Clk(CLOCK_50),
