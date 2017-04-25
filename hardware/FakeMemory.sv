@@ -46,8 +46,8 @@ module FakeMemory
             MemoryArray[6]  <= 16'b0001_101_101_1_10000;    // ADD  R5,R5,#-16
             MemoryArray[7]  <= 16'b1101_001_011_0_00_101;   // MUL  R1,R3,R5
             MemoryArray[8]  <= 16'b1101_010_011_1_00100;    // MUL  R2,R3,#4
-            MemoryArray[9]  <= 16'b1011_011_111111011;      // STI  R1,#-6
-            MemoryArray[10] <= 16'b1011_011_111111011;      // STI  R2,#-7
+            MemoryArray[9]  <= 16'b1011_001_111111010;      // STI  R1,#-6
+            MemoryArray[10] <= 16'b1011_010_111111001;      // STI  R2,#-7
             MemoryArray[11] <= 16'b1111_0000_00100101;      // TRAP x25
             MemoryArray[12] <= 16'h0000;
             MemoryArray[13] <= 16'h0000;
