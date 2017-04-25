@@ -124,17 +124,17 @@ module ControlUnit
                         4'b0001:    Next_State = State_01;      // ADD
                         4'b0010:    Next_State = State_02;      // LD
                         4'b0011:    Next_State = State_03;      // ST
-                        4'b0100:    Next_State = State_04;      // *JSR/JSRR
+                        4'b0100:    Next_State = State_04;      // JSR/JSRR
                         4'b0101:    Next_State = State_05;      // AND
                         4'b0110:    Next_State = State_06;      // LDR
                         4'b0111:    Next_State = State_07;      // STR
                         4'b1001:    Next_State = State_09;      // NOT
                         4'b1010:    Next_State = State_10;      // LDI
                         4'b1011:    Next_State = State_11;      // STI
-                        4'b1100:    Next_State = State_12;      // *JMP
-                        4'b1101:    Next_State = State_13;      // *MUL
-                        4'b1110:    Next_State = State_14;      // *LEA
-                        4'b1111:    Next_State = State_15;      // *TRAP
+                        4'b1100:    Next_State = State_12;      // JMP
+                        4'b1101:    Next_State = State_13;      // MUL
+                        4'b1110:    Next_State = State_14;      // LEA
+                        4'b1111:    Next_State = State_15;      // TRAP
                         default:    Next_State = INVALID;       // (invalid opcode)
                     endcase
                 //end
@@ -482,18 +482,6 @@ module ControlUnit
                 LD_PC = 1'b1;
             end
             
-            /* -- LEA -- */
-            // DR <- PC + off9; setCC
-            State_14: begin
-                DRMUX = 2'b00;
-                ADDR1MUX = 1'b0;
-                ADDR2MUX = 2'b10;
-                MARMUX = 1'b1;
-                GateMARMUX = 1'b1;
-                LD_REG = 1'b1;
-                LD_CC = 1'b1;
-            end
-            
             /* -- MUL -- */
             // RMUL <- A * B
             State_13: begin
@@ -502,12 +490,24 @@ module ControlUnit
             end
             // [MUL_R]
             State_13_nR: begin
-                // Nothing
+                SR1MUX = 2'b01;
             end
             // DR <- RMUL; setCC
             State_13_R: begin
                 DRMUX = 2'b00;
                 GateMUL = 1'b1;
+                LD_REG = 1'b1;
+                LD_CC = 1'b1;
+            end
+            
+            /* -- LEA -- */
+            // DR <- PC + off9; setCC
+            State_14: begin
+                DRMUX = 2'b00;
+                ADDR1MUX = 1'b0;
+                ADDR2MUX = 2'b10;
+                MARMUX = 1'b1;
+                GateMARMUX = 1'b1;
                 LD_REG = 1'b1;
                 LD_CC = 1'b1;
             end
