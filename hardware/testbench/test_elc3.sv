@@ -4,6 +4,8 @@ module test_elc3();
     timeprecision 1ns;
 
     logic           CLOCK_50;
+    logic           PS2_KBCLK;
+    logic           PS2_KBDAT;
     logic   [3:0]   KEY;
     logic   [17:0]  SW;
     logic   [8:0]   LEDG;

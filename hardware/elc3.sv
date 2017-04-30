@@ -7,9 +7,11 @@
 module elc3
 (
     // DE2-115 inputs and outputs
-    input                   CLOCK_50,
-    input           [3:0]   KEY,
-    input           [17:0]  SW,
+    input   logic           CLOCK_50,
+    input   logic           PS2_KBCLK,
+    input   logic           PS2_KBDAT,
+    input   logic   [3:0]   KEY,
+    input   logic   [17:0]  SW,
     output  logic   [8:0]   LEDG,
     output  logic   [17:0]  LEDR,
     output  logic   [6:0]   HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6, HEX7,
@@ -48,6 +50,11 @@ module elc3
     
     logic   [15:0]  PC, IR;
     
+    logic   [7:0]   Keycode, ASCII;
+    logic           Keypress;
+    logic   [15:0]  KBDR;
+    logic           KBSR;
+    
     // eLC-3 memory signals
     logic   [15:0]  Address;
     logic           Mem_CE, Mem_OE, Mem_WE;
@@ -58,18 +65,53 @@ module elc3
     logic   [15:0]  Data_FromCPU, Data_ToCPU;           // Data to/from datapath
     logic   [15:0]  Data_FromSRAM, Data_ToSRAM;         // Data to/from SRAM chip
     logic   [15:0]  Data_FromKeyboard, Data_ToVideo;    // I/O
-    logic   [15:0]  Data_ToHexDisplays0, Data_ToHexDisplays1;
-    logic   [15:0]  Data_FromSwitches;                  // "Keyboard" input
+    logic   [15:0]  Data_ToHexDisplays0;
+    logic   [15:0]  Data_ToHexDisplays1;
+    logic   [15:0]  Data_FromSwitches;
     
     assign          Data_FromSwitches = SW[15:0];
-    assign          Data_FromKeyboard = Data_FromSwitches;
-    assign          Data_ToHexDisplays0 = PC;
-    assign          Data_ToHexDisplays1 = IR;
-    assign          LEDR[15:0] = Data_ToVideo;
-    //assign          LEDG[7:4] = Opcode;
+    assign          Data_FromKeyboard = { 8'h00, ASCII };
+    assign          Data_ToHexDisplays0 = Data_ToVideo;
+    assign          Data_ToHexDisplays1 = PC;
+    assign          LEDR[15:0] = IR;
+    assign          LEDG[8] = KBSR;
     
-//    assign          Data_FromCPU = 16'hCAFE;
-//    assign          Address = Data_FromSwitches;
+//    always_comb begin
+//        if (~KEY[1]) begin
+//            Address = 16'hFE02;
+//            MIO_EN = 1'b1;
+//        end
+//        else begin
+//            Address = 16'h0000;
+//            MIO_EN = 1'b0;
+//        end
+//    end
+    
+//    KeyboardDriver kb
+//    (
+//        .Clk(CLOCK_50),
+//        .PSClk(PS2_KBCLK),
+//        .Reset(Reset),
+//        .PSData(PS2_KBDAT),
+//        .Keycode(Keycode),
+//        .Keypress(Keypress)
+//    );
+
+    KeyboardDriver kb
+    (
+        .Clk(CLOCK_50),
+        .psClk(PS2_KBCLK),
+        .reset(Reset),
+        .psData(PS2_KBDAT),
+        .keyCode(Keycode),
+        .press(Keypress)
+    );
+    
+    KeycodeMap keymap
+    (
+        .Keycode(Keycode),
+        .ASCII(ASCII)
+    );
 
     // eLC-3 datapath
     Datapath dp
@@ -91,7 +133,9 @@ module elc3
     MemoryControlUnit memCtl
     (
         .Clk(CLOCK_50),
-        .*
+        .*,
+        .KBSR_Out(KBSR),    // DEBUG
+        .KBDR_Out(KBDR)     // DEBUG
     );
     
     BidirectionalTriState memTristate
