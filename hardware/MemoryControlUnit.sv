@@ -27,7 +27,7 @@ module MemoryControlUnit
 
     // Keyboard data and status; display data and status
     logic           LD_KBSR;
-    logic           LD_DDR
+    logic           LD_DDR;
     logic           LD_DSR;
     logic           CLR_KBSR;
     logic           CLR_DSR;
@@ -56,7 +56,6 @@ module MemoryControlUnit
         CLR_KBSR    = 1'b0;
         CLR_DSR     = 1'b0;
         LD_DDR      = 1'b0;
-        LD_DSR      = 1'b0;
         INMUX       = 2'b00;
         Mem_OE      = 1'b0;
         Mem_WE      = 1'b0;
