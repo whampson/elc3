@@ -1,4 +1,4 @@
-/**
+ /**
  * An N-bit tri-state buffer for a bidirectional (inout) data port.
  *
  * @author Wes Hampson, Xavier Rocha
@@ -14,7 +14,7 @@ module BidirectionalTriState #(N = 16)
 
     logic   [N-1:0] DataIn_Buffer, DataOut_Buffer;
     
-    // Update the output buffer every clock cycle
+    // Update the input and output buffers every clock cycle
     always_ff @(posedge Clk) begin
         DataIn_Buffer <= Data;
         DataOut_Buffer <= In;
