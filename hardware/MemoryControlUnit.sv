@@ -15,26 +15,30 @@ module MemoryControlUnit
     input   logic   [15:0]  Data_FromCPU,
     input   logic   [15:0]  Data_FromKeyboard,
     input   logic           Keypress,
+    input   logic           DisplayReady,
     output  logic           Mem_CE, Mem_OE, Mem_WE,
     output  logic           Mem_LB, Mem_UB,
     output  logic   [15:0]  Data_ToSRAM,
     output  logic   [15:0]  Data_ToCPU,
-    output  logic   [15:0]  Data_ToVideo,
-    output  logic           KBSR_Out,       // DEBUG
-    output  logic   [15:0]  KBDR_Out        // DEBUG
+    output  logic   [15:0]  Data_ToVideo
+//    output  logic           KBSR_Out,       // DEBUG
+//    output  logic   [15:0]  KBDR_Out        // DEBUG
 );
 
     // Keyboard data and status; display data and status
     logic           LD_KBSR;
-    logic           LD_DDR, LD_DSR;
+    logic           LD_DDR
+    logic           LD_DSR;
     logic           CLR_KBSR;
+    logic           CLR_DSR;
     logic   [15:0]  KBDR, KBSR;
     logic   [15:0]  DDR, DSR;
     
-    assign KBSR_Out = KBSR[15];     // DEBUG
-    assign KBDR_Out = KBDR;         // DEBUG
+//    assign KBSR_Out = KBSR[15];     // DEBUG
+//    assign KBDR_Out = KBDR;         // DEBUG
     
     assign LD_KBSR = Keypress && Data_FromKeyboard != 16'h0000;
+    assign LD_DSR = DisplayReady;
     
     // Input MUX select signal
     logic   [1:0]   INMUX;
@@ -50,6 +54,7 @@ module MemoryControlUnit
     // Memory-mapped I/O logic
     always_comb begin
         CLR_KBSR    = 1'b0;
+        CLR_DSR     = 1'b0;
         LD_DDR      = 1'b0;
         LD_DSR      = 1'b0;
         INMUX       = 2'b00;
@@ -66,26 +71,24 @@ module MemoryControlUnit
             
             // Read and clear KBSR
             16'hFE02: begin
-                if (MIO_EN) begin
+                if (MIO_EN && !R_W) begin
                     INMUX = 2'b10;
                     CLR_KBSR = 1'b1;
                 end
             end
             
-            // Read/write DSR
+            // Read DSR
             16'hFE04: begin
-                if (MIO_EN) begin
-                    if (R_W)
-                        LD_DSR = 1'b1;
-                    else
-                        INMUX = 2'b11;
+                if (MIO_EN && !R_W) begin
+                    INMUX = 2'b11;
                 end
             end
             
-            // Write DDR
+            // Write DDR, clear DSR
             16'hFE06: begin
                 if (MIO_EN && R_W) begin
                     LD_DDR = 1'b1;
+                    CLR_DSR = 1'b1;
                 end
             end
             
@@ -103,6 +106,7 @@ module MemoryControlUnit
         endcase
     end
     
+    // Keyboard data register
     Register        _KBDR
     (
         .Clk(Clk),
@@ -112,6 +116,7 @@ module MemoryControlUnit
         .Load(~KBSR[15])
     );
     
+    // Keyboard status register
     Register        _KBSR
     (
         .Clk(Clk),
@@ -121,6 +126,7 @@ module MemoryControlUnit
         .Load(LD_KBSR)
     );
     
+    // Display data register
     Register        _DDR
     (
         .Clk(Clk),
@@ -130,15 +136,17 @@ module MemoryControlUnit
         .Load(LD_DDR)
     );
     
+    // Display status register
     Register        _DSR
     (
         .Clk(Clk),
-        .Reset(Reset),
-        .In(Data_FromCPU),
+        .Reset(Reset | CLR_DSR),
+        .In(16'h80000),
         .Out(DSR),
         .Load(LD_DSR)
     );
-
+    
+    // CPU data input MUX
     Mux_4to1        _INMUX
     (
         .In0(Data_FromSRAM),
