@@ -10,17 +10,13 @@ module RegisterFile
     input   logic           LD_REG,             // Register load signal
     input   logic   [2:0]   DR, SR1, SR2,       // Register selection bits (000 is R0, 001 is R1, etc.)
     input   logic   [15:0]  In,                 // Input data
-    output  logic   [15:0]  SR1_Out, SR2_Out, R0, R1    // Output of SR1 and SR2
+    output  logic   [15:0]  SR1_Out, SR2_Out    // Output of SR1 and SR2
 );
 
     // Internal load, input, and output signals
     logic           R0_Ld,  R1_Ld,  R2_Ld,  R3_Ld,  R4_Ld,  R5_Ld,  R6_Ld,  R7_Ld;
     logic   [15:0]  R0_In,  R1_In,  R2_In,  R3_In,  R4_In,  R5_In,  R6_In,  R7_In;
     logic   [15:0]  R0_Out, R1_Out, R2_Out, R3_Out, R4_Out, R5_Out, R6_Out, R7_Out;
-    
-    
-    assign R0 = R0_Out;
-    assign R1 = R1_Out;
     
     // General purpose registers
     Register        _R0(.Clk(Clk), .Reset(Reset), .In(R0_In), .Out(R0_Out), .Load(R0_Ld));
