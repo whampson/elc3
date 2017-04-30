@@ -1,8 +1,12 @@
 /**
- * Datapath testbench.
+ * The eLC-3 control unit state machine.
+ * A unique set of control signals are generated and sent to the datapath
+ * depending on the current state. A sequene of states makes up an instruction.
+ *
+ * State machine flowchart (not including MUL):
+ * http://i.imgur.com/NNblKM7.png
  *
  * @author Wes Hampson, Xavier Rocha
- * Control Image : http://i.imgur.com/NNblKM7.png?1
  */
 module ControlUnit
 (
@@ -20,8 +24,8 @@ module ControlUnit
     output  logic   [1:0]   ALUK,
     output  logic           MIO_EN, R_W,
     output  logic           MUL_EN,
-    output  logic           Halted, Paused, InvalidOp,
-    output  logic   [3:0]   Opcode
+    output  logic           Halted, Paused, InvalidOp,  // DEBUG
+    output  logic   [3:0]   Opcode  // DEBUG
 );
 
     //logic           [3:0]   Opcode;
@@ -32,7 +36,6 @@ module ControlUnit
     /* ===== Valid states ===== */
     enum logic [7:0]
     {
-        // TODO: MUL states
         State_00        = 8'd0,
         State_01        = 8'd1,
         State_02        = 8'd2,
