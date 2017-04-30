@@ -1,3 +1,8 @@
+/**
+ * Testbench for the multiplier.
+ *
+ * @author Wes Hampson, Xavier Rocha
+ */
 module test_multiplier();
 
     timeunit 10ns;

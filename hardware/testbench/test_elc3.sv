@@ -1,3 +1,8 @@
+/**
+ * eLC-3 (toplevel) testbench.
+ *
+ * @author Wes Hampson, Xavier Rocha
+ */
 module test_elc3();
 
     timeunit 10ns;

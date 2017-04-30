@@ -1,3 +1,10 @@
+/**
+ * The eLC-3 multiplier unit.
+ * This multiplier takes in two 8-bit inputs and creates one
+ * 16-bit output that is the product of the two inputs.
+ *
+ * @author Wes Hampson, Xavier Rocha
+ */
 module Multiplier
 (
     input   logic           Clk, Reset,

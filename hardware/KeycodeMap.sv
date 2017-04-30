@@ -1,4 +1,10 @@
-module KeycodeMap
+/**
+ * Maps PS/2 keycodes to ASCII values.
+ * Only alphanumeric, backspace, and return keys are mapped.
+ *
+ * @author Wes Hampson, Xavier Rocha
+ */
+/module KeycodeMap
 (
     input   logic   [7:0]   Keycode,
     output  logic   [7:0]   ASCII
