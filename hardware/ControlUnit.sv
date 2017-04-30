@@ -587,8 +587,11 @@ module ControlUnit
             INVALID:
                 InvalidOp = 1'b1;
             
-            HALT:
+            HALT: begin
                 Halted = 1'b1;
+                PCMUX = 2'b11;  // Reset PC to 0x0200
+                LD_PC = 1'b1;
+            end
         endcase
     end
 
