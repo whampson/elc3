@@ -1,8 +1,10 @@
 /**
  * The eLC-3 datapath.
  *
+ * Datapath block diagram:
+ * https://www.irif.fr/~carton/Enseignement/Architecture/Cours/Inoutput/datapath.png
+ *
  * @author Wes Hampson, Xavier Rocha
- * Datapath Image : https://www.irif.fr/~carton/Enseignement/Architecture/Cours/Inoutput/datapath.png
  */
 module Datapath
 (
@@ -148,9 +150,7 @@ module Datapath
         .SR1(SR1MUX_Out),
         .SR2(IR[2:0]),
         .SR1_Out(SR1),
-        .SR2_Out(SR2),
-        .R0(R0),            // DEBUG
-        .R1(R1)             // DEBUG
+        .SR2_Out(SR2)
     );
     
     /* ==== The arithmetic and logic unit ==== */
@@ -212,7 +212,8 @@ module Datapath
         .In0(PC + 16'd1),
         .In1(Bus),
         .In2(ADDR1MUX_Out + ADDR2MUX_Out),
-        .In3(16'hZZZZ), // Unused
+        //.In3(16'hZZZZ), // Unused
+        .In3(16'h0200),     // PC reset
         .Out(PCMUX_Out),
         .Select(PCMUX)
     );
