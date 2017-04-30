@@ -4,7 +4,7 @@
  *
  * @author Wes Hampson, Xavier Rocha
  */
-/module KeycodeMap
+module KeycodeMap
 (
     input   logic   [7:0]   Keycode,
     output  logic   [7:0]   ASCII
