@@ -55,6 +55,8 @@ module elc3
     logic   [15:0]  KBDR;
     logic           KBSR;
     
+    logic           DisplayReady;
+    
     // eLC-3 memory signals
     logic   [15:0]  Address;
     logic           Mem_CE, Mem_OE, Mem_WE;
@@ -133,9 +135,9 @@ module elc3
     MemoryControlUnit memCtl
     (
         .Clk(CLOCK_50),
-        .*,
-        .KBSR_Out(KBSR),    // DEBUG
-        .KBDR_Out(KBDR)     // DEBUG
+        .*
+//        .KBSR_Out(KBSR),    // DEBUG
+//        .KBDR_Out(KBDR)     // DEBUG
     );
     
     BidirectionalTriState memTristate
