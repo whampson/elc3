@@ -35,19 +35,25 @@ module DisplayDriver
     logic       [7:0]   CellX, CellY;
     
     logic       [7:0]   CharToRender;
-    logic       [11:0]  ReadAddress;
+    logic       [11:0]  VGAReadAddress;
     
     logic               WriteEnable;
     logic       [7:0]   CharToWrite;
+    logic       [11:0]  CharAddress;
+    logic       [11:0]  ReadAddress, ReadAddress_Next;
     logic       [11:0]  WriteAddress, WriteAddress_Next;
+    logic               RWToggle, RWToggle_Next;
+    
+    logic       [7:0]   CharOut, CharOut_Next;
     
     logic               ResetDone;
+    logic               ScrollDone;
     
     logic               CursorOn, CursorOn_Next;
     logic       [23:0]  CursorCounter, CursorCounter_Next;
     
     // Address of current character being drawn
-    assign ReadAddress = (CellY * NUM_CELLS_X) + CellX;
+    assign VGAReadAddress = (CellY * NUM_CELLS_X) + CellX;
     
     enum logic [2:0]
     {
@@ -55,20 +61,28 @@ module DisplayDriver
         RESET_DO,
         DRAW,
         BACKSPACE,
-        OTHER_CHARS
+        OTHER_CHARS,
+        SCROLL_INIT,
+        SCROLL_DO
     } State, NextState;
     
     always_ff @(posedge Clk) begin
         if (Reset) begin
             WriteAddress <= 12'h000;
+            ReadAddress <= 12'h000;
             CursorCounter <= 24'd0;
             CursorOn <= 1'b0;
+            CharOut <= 8'h00;
+            RWToggle <= 1'b0;
             State <= RESET_INIT;
         end
         else begin
             WriteAddress <= WriteAddress_Next;
+            ReadAddress <= ReadAddress_Next;
             CursorCounter <= CursorCounter_Next;
             CursorOn <= CursorOn_Next;
+            CharOut <= CharOut_Next;
+            RWToggle <= RWToggle_Next;
             State <= NextState;
         end
     end
@@ -107,34 +121,56 @@ module DisplayDriver
             OTHER_CHARS: begin
                 NextState = DRAW;
             end
+            
+            SCROLL_INIT: begin
+                NextState = SCROLL_DO;
+            end
+            
+            SCROLL_DO: begin
+                if (ScrollDone)
+                        NextState = DRAW;
+                    else
+                        NextState = SCROLL_DO;
+            end
         endcase
+        
+        if (State != RESET_DO && State != SCROLL_DO && WriteAddress >= BUFFER_SIZE)
+            NextState = SCROLL_INIT;
     end
     
     always_comb begin
         Ready = 1'b0;
         ResetDone = 1'b0;
+        ScrollDone = 1'b0;
+        
         CharToWrite = CharIn;
         WriteEnable = CharWE;
         
+        ReadAddress_Next = ReadAddress;
+        CharAddress = ReadAddress;
         WriteAddress_Next = WriteAddress;
+        RWToggle_Next = RWToggle;
+        //CharOut_Next = CharOut;
+        
         CursorCounter_Next = CursorCounter;
         CursorOn_Next = CursorOn;
         
         case (State)
             RESET_INIT: begin
-                // Reset write addres to 0
+                // Reset write address to 0
                 WriteAddress_Next = 12'h0000;
             end
             
             RESET_DO: begin
                 // Fill all cells with NUL
                 WriteAddress_Next = WriteAddress + 12'h001;
+                CharAddress = WriteAddress;
                 CharToWrite = CHAR_NUL;
                 WriteEnable = 1'b1;
                 
                 if (WriteAddress_Next >= BUFFER_SIZE) begin
                     // Reset write address to 0
-                    WriteAddress_Next = 12'h0000;
+                    WriteAddress_Next = 12'h000;
                     ResetDone = 1'b1;
                 end
             end
@@ -142,6 +178,7 @@ module DisplayDriver
             DRAW: begin
                 CursorCounter_Next = CursorCounter + 24'd1;
                 Ready = 1'b1;
+                CharAddress = WriteAddress;
                 
                 if (CharWE) begin
                     CursorCounter_Next = -24'd1;
@@ -197,33 +234,80 @@ module DisplayDriver
                     CursorOn_Next = ~CursorOn;
                 end
                 
-                // Wrap to the start of the screen if screen buffer reaches the end
-                // TODO: screen scrolling
-                if (WriteAddress_Next >= BUFFER_SIZE)
-                    WriteAddress_Next = 12'h000;
+//                // Wrap to the start of the screen if screen buffer reaches the end
+//                // TODO: screen scrolling
+//                if (WriteAddress_Next >= BUFFER_SIZE)
+//                    WriteAddress_Next = 12'h000;
             end
             
             BACKSPACE: begin
                 // Clear the previous character by writing NUL at it's position
+                CharAddress = WriteAddress;
                 CharToWrite = CHAR_NUL;
                 WriteEnable = 1'b1;
             end
             
             OTHER_CHARS: begin
+                CharAddress = WriteAddress;
                 WriteEnable = 1'b0;
+            end
+            
+            SCROLL_INIT: begin
+                WriteAddress_Next = 12'h000;
+                ReadAddress_Next = NUM_CELLS_X;
+            end
+            
+            SCROLL_DO: begin
+                //ReadAddress = WriteAddress + NUM_CELLS_X;
+                //CharToWrite = CharOut;
+                
+                if (!RWToggle) begin
+                    CharAddress = ReadAddress;
+                end
+                else begin
+                    // Consider a read enable???
+                    WriteAddress_Next = WriteAddress + 12'h001;
+                    ReadAddress_Next = ReadAddress + 12'h001;
+                    CharAddress = WriteAddress;
+                    CharToWrite = CharOut;
+                    if (WriteAddress >= BUFFER_SIZE - NUM_CELLS_X)
+                        CharToWrite = CHAR_NUL;
+                end
+                
+                WriteEnable = RWToggle;
+                RWToggle_Next = ~RWToggle;
+                
+                if (WriteAddress_Next >= BUFFER_SIZE) begin
+                    // Reset write address to 0
+                    WriteAddress_Next = BUFFER_SIZE - NUM_CELLS_X;
+                    ScrollDone = 1'b1;
+                end
             end
         endcase
     end
     
-    // Character buffer
-    RAM_12by8 charBuf
+//    // Character buffer
+//    RAM_12by8 charBuf
+//    (
+//        .clock(Clk),
+//        .data(CharToWrite),
+//        .rdaddress(ReadAddress),
+//        .wraddress(WriteAddress),
+//        .wren(WriteEnable),
+//        .q(CharToRender)
+//    );
+
+    RAM_12by8_DualPort charBuf
     (
+        .address_a(VGAReadAddress),
+        .address_b(CharAddress),
         .clock(Clk),
-        .data(CharToWrite),
-        .rdaddress(ReadAddress),
-        .wraddress(WriteAddress),
-        .wren(WriteEnable),
-        .q(CharToRender)
+        .data_a(8'h00),
+        .data_b(CharToWrite),
+        .wren_a(1'b0),
+        .wren_b(WriteEnable),
+        .q_a(CharToRender),
+        .q_b(CharOut_Next)
     );
     
     VGAController vgaCtl(.*);
