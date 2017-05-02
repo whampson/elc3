@@ -604,6 +604,10 @@ set_global_assignment -name SYSTEMVERILOG_FILE hardware/HexDriver.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/KeycodeMap.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/KeyboardDriver.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/Synchronizer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/DisplayDriver.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/VGAController.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/CharacterRenderer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE hardware/FontROM.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_alu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_datapath.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_elc3.sv
@@ -611,4 +615,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_fakemem.s
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_multiplier.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hardware/testbench/test_regfile.sv
 set_global_assignment -name SDC_FILE elc3.sdc
+set_global_assignment -name QIP_FILE hardware/ip/RAM_12by8.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

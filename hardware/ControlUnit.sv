@@ -10,7 +10,9 @@
  */
 module ControlUnit
 (
-    input   logic           Clk, Reset, Run, Continue,
+    input   logic           Clk, Reset,
+    input   logic           Run, Continue, Step,
+    input   logic           DoHalt,
     input   logic           MUL_R,
     input   logic           BEN,
     input   logic           IR_5,
@@ -94,7 +96,7 @@ module ControlUnit
     
     /* ===== State transition ===== */
     always_ff @(posedge Clk) begin
-        if (Reset)
+        if (Reset || DoHalt)
             State <= HALT;
         else
             State <= Next_State;
@@ -106,22 +108,22 @@ module ControlUnit
         
         unique case (State)
             /* ===== FETCH ===== */
-            State_18:Next_State = State_33_nR1;
+            State_18:       Next_State = State_33_nR1;
             State_33_nR1:   Next_State = State_33_nR2;
             State_33_nR2:   Next_State = State_33_R;
             State_33_R:     Next_State = State_35;
             State_35: begin
-                // Uncomment for debugging on FPGA
-                //if (Continue)
+                if (Step && ~Continue)
+                    Next_State = State_35;
+                else
                     Next_State = State_32;
-                //else
-                //    Next_State = State_35;
             end
             
             /* ===== DECODE ===== */
             State_32: begin
-                // Uncomment for debugging on FPGA
-                //if (~Continue) begin
+                if (Step && Continue)
+                    Next_State = State_32;
+                else begin
                     case (Opcode)
                         4'b0000:    Next_State = State_00;      // BR
                         4'b0001:    Next_State = State_01;      // ADD
@@ -140,9 +142,7 @@ module ControlUnit
                         4'b1111:    Next_State = State_15;      // TRAP
                         default:    Next_State = INVALID;       // (invalid opcode)
                     endcase
-                //end
-                //else
-                //    Next_State = State_32;
+                end
             end
             
             /* ===== EXECUTE =====*/
@@ -531,9 +531,15 @@ module ControlUnit
             end
             State_28_nR2: begin
                 MIO_EN = 1'b1;
+                DRMUX = 2'b01;
+                GatePC = 1'b1;
+                LD_REG = 1'b1;
             end
             State_28_R: begin
                 MIO_EN = 1'b1;
+                DRMUX = 2'b01;
+                GatePC = 1'b1;
+                LD_REG = 1'b1;
                 LD_MDR = 1'b1;
             end
             // PC <- MDR
@@ -589,8 +595,9 @@ module ControlUnit
             
             HALT: begin
                 Halted = 1'b1;
-                PCMUX = 2'b11;  // Reset PC to 0x0200
+                PCMUX = 2'b11;  // Reset PC to 0x0201
                 LD_PC = 1'b1;
+                LD_CC = 1'b1;
             end
         endcase
     end

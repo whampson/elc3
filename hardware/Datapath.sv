@@ -25,7 +25,8 @@ module Datapath
     output  logic           IR_5,                                                // Bit 5 of instruction register
 	output  logic           IR_11,												 // Bit 11 of instruction register
     output  logic   [3:0]   IR_15_12,                                            // Bits 15-12 of instruction register
-    output  logic   [15:0]  PC, IR // DEBUG
+    output  logic   [15:0]  PC, IR, // DEBUG
+    input   logic   [15:0]  PC_In   // DEBUG
 );
 
     /* ==== Internal signals ==== */
@@ -213,7 +214,7 @@ module Datapath
         .In1(Bus),
         .In2(ADDR1MUX_Out + ADDR2MUX_Out),
         //.In3(16'hZZZZ), // Unused
-        .In3(16'h0200),     // PC reset
+        .In3(PC_In),     // PC reset
         .Out(PCMUX_Out),
         .Select(PCMUX)
     );
