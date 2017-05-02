@@ -16,6 +16,10 @@ module KeyboardDriver(input logic Clk, psClk, psData, reset,
 	logic [10:0] Byte_1, Byte_2;
 	logic [7:0] Data, Typematic_Keycode;
 	logic [9:0] counter;
+    
+    logic [22:0] repeat_counter, repeat_counter_next;
+    logic [7:0] last_keycode, last_keycode_next;
+    logic       debouncing;
 
 	//Counter to sync ps2 clock and system clock
 	always@(posedge Clk or posedge reset)
@@ -93,6 +97,40 @@ module KeyboardDriver(input logic Clk, psClk, psData, reset,
 			end
 		end
 	end
+    
+    always_ff @(posedge Clk) begin
+        if (reset) begin
+            repeat_counter <= 0;
+            last_keycode <= 0;
+        end
+        else begin
+            repeat_counter <= repeat_counter_next;
+            last_keycode <= last_keycode_next;
+        end
+    end
+    
+    assign debouncing = repeat_counter != 0;
+    
+    always_comb begin
+        press = 1'b0;
+        last_keycode_next = last_keycode;
+        repeat_counter_next = repeat_counter;
+        
+        if (Press) begin
+            if (keyCode == last_keycode && debouncing)
+                press = 1'b0;
+            else begin
+                press = 1'b1;
+                last_keycode_next = keyCode;
+                repeat_counter_next = 1;
+            end
+            
+            if (repeat_counter != 0)
+                repeat_counter_next = repeat_counter + 1;
+        end
+        else
+            repeat_counter_next = 0;
+    end
 
 	Register #(1) Dreg_instance1 ( .*,
 								 .Load(enable),
@@ -128,7 +166,7 @@ module KeyboardDriver(input logic Clk, psClk, psData, reset,
 					);
 
 	assign keyCode=Data;
-	assign press=Press;
+	//assign press=Press;
 
 endmodule
 

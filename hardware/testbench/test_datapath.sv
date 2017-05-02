@@ -35,6 +35,8 @@ module test_datapath();
     logic   [15:0]  ALU;                                                 // ALU output
     logic           N, Z, P;                                             // Condition code registers
     
+    logic   [15:0]  PC_In;  // DEBUG
+    
     assign SR2MUX = IR_5;
     
     // Datapath instantiation

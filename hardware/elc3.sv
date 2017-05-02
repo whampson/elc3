@@ -18,13 +18,20 @@ module elc3
     output  logic           SRAM_CE_N, SRAM_OE_N, SRAM_WE_N,
     output  logic           SRAM_LB_N, SRAM_UB_N,
     output  logic   [19:0]  SRAM_ADDR,
-    inout   wire    [15:0]  SRAM_DQ
+    inout   wire    [15:0]  SRAM_DQ,
+    output  logic           VGA_CLK,
+    output  logic           VGA_SYNC_N, VGA_BLANK_N,
+    output  logic           VGA_VS, VGA_HS,
+    output  logic   [7:0]   VGA_R, VGA_G, VGA_B
 );
 
     // Synchronized reset, run, and continue signals
     logic           Reset;
     logic           Run;
     logic           Continue;
+    logic           Step;
+    
+    logic           DoHalt;
     
     logic   [3:0]   Opcode;
     
@@ -32,6 +39,7 @@ module elc3
     assign          LEDG[0] = Halted;
     assign          LEDG[1] = Paused;
     assign          LEDR[17] = InvalidOp;
+    assign          Step = SW[17];
     
     // eLC-3 control signals
     logic           LD_MAR, LD_MDR, LD_IR, LD_BEN, LD_REG, LD_CC, LD_PC; // Register load signals
@@ -56,6 +64,7 @@ module elc3
     logic           KBSR;
     
     logic           DisplayReady;
+    logic           DisplayWE;
     
     // eLC-3 memory signals
     logic   [15:0]  Address;
@@ -71,12 +80,15 @@ module elc3
     logic   [15:0]  Data_ToHexDisplays1;
     logic   [15:0]  Data_FromSwitches;
     
+    logic   [15:0]  PC_In;      // DEBUG
+    
     assign          Data_FromSwitches = SW[15:0];
     assign          Data_FromKeyboard = { 8'h00, ASCII };
-    assign          Data_ToHexDisplays0 = Data_ToVideo;
+    assign          Data_ToHexDisplays0 = IR;
     assign          Data_ToHexDisplays1 = PC;
-    assign          LEDR[15:0] = IR;
-    assign          LEDG[8] = KBSR;
+    //assign          LEDR[15:0] = IR;
+    //assign          LEDG[8] = KBSR;
+    assign          PC_In = Data_FromSwitches;
     
 //    always_comb begin
 //        if (~KEY[1]) begin
@@ -113,6 +125,17 @@ module elc3
     (
         .Keycode(Keycode),
         .ASCII(ASCII)
+    );
+    
+    DisplayDriver disp
+    (
+        .Clk(CLOCK_50),
+        .CharWE(DisplayWE),
+        .AddressWE(1'b0),
+        .CharIn(Data_ToVideo),
+        .AddressIn(12'h000),
+        .Ready(DisplayReady),
+        .*
     );
 
     // eLC-3 datapath

@@ -16,8 +16,10 @@ module MemoryControlUnit
     input   logic   [15:0]  Data_FromKeyboard,
     input   logic           Keypress,
     input   logic           DisplayReady,
+    output  logic           DisplayWE,
     output  logic           Mem_CE, Mem_OE, Mem_WE,
     output  logic           Mem_LB, Mem_UB,
+    output  logic           DoHalt,
     output  logic   [15:0]  Data_ToSRAM,
     output  logic   [15:0]  Data_ToCPU,
     output  logic   [15:0]  Data_ToVideo
@@ -33,6 +35,7 @@ module MemoryControlUnit
     logic           CLR_DSR;
     logic   [15:0]  KBDR, KBSR;
     logic   [15:0]  DDR, DSR;
+    logic           DisplayWE_Out;
     
 //    assign KBSR_Out = KBSR[15];     // DEBUG
 //    assign KBDR_Out = KBDR;         // DEBUG
@@ -51,14 +54,23 @@ module MemoryControlUnit
     assign Mem_LB = 1'b1;
     assign Mem_UB = 1'b1;
     
+    always_ff @(posedge Clk) begin
+        if (Reset)
+            DisplayWE <= 1'b0;
+        else
+            DisplayWE <= DisplayWE_Out;
+    end
+    
     // Memory-mapped I/O logic
     always_comb begin
-        CLR_KBSR    = 1'b0;
-        CLR_DSR     = 1'b0;
-        LD_DDR      = 1'b0;
-        INMUX       = 2'b00;
-        Mem_OE      = 1'b0;
-        Mem_WE      = 1'b0;
+        CLR_KBSR        = 1'b0;
+        CLR_DSR         = 1'b0;
+        LD_DDR          = 1'b0;
+        INMUX           = 2'b00;
+        Mem_OE          = 1'b0;
+        Mem_WE          = 1'b0;
+        DisplayWE_Out   = 1'b0;
+        DoHalt          = 1'b0;
         
         unique case (Address)
             // Read/write KBSR
@@ -88,7 +100,13 @@ module MemoryControlUnit
                 if (MIO_EN && R_W) begin
                     LD_DDR = 1'b1;
                     CLR_DSR = 1'b1;
+                    DisplayWE_Out = 1'b1;
                 end
+            end
+            
+            16'hFFFF: begin
+                if (MIO_EN && R_W)
+                    DoHalt = 1'b1;
             end
             
             // Read/write SRAM
@@ -140,7 +158,7 @@ module MemoryControlUnit
     (
         .Clk(Clk),
         .Reset(Reset | CLR_DSR),
-        .In(16'h80000),
+        .In(16'h8000),
         .Out(DSR),
         .Load(LD_DSR)
     );

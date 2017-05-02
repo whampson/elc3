@@ -20,6 +20,10 @@ module test_elc3();
     logic           SRAM_LB_N, SRAM_UB_N;
     logic   [19:0]  SRAM_ADDR;
     wire    [15:0]  SRAM_DQ;
+    logic           VGA_CLK;
+    logic           VGA_SYNC_N, VGA_BLANK_N;
+    logic           VGA_VS, VGA_HS;
+    logic   [7:0]   VGA_R, VGA_G, VGA_B;
     
     logic Clk, Reset, Run;
     
@@ -31,6 +35,7 @@ module test_elc3();
     logic   [15:0]  MAR, MDR, IR, PC;
     logic   [15:0]  R0, R1, R2, R3, R4, R5, R6, R7;
     logic   [15:0]  SR1, SR2;
+    logic           N, Z, P;
     
     logic   [7:0]   State;
     logic   [3:0]   Opcode;
@@ -62,6 +67,9 @@ module test_elc3();
         R7 = theELC3.dp._GenPurposeRegs.R7_Out;
         SR1 = theELC3.dp.SR1;
         SR2 = theELC3.dp.SR2;
+        N = theELC3.dp.N;
+        Z = theELC3.dp.Z;
+        P = theELC3.dp.P;
         State = theELC3.ctl.State;
         Opcode = theELC3.ctl.Opcode;
         MIO_EN = theELC3.MIO_EN;
@@ -70,7 +78,7 @@ module test_elc3();
     
     initial begin : TEST_VECTORS
         // Initialize
-        SW = 16'h0005;
+        SW = 16'd60;
         //KEY = 4'h0;
         Run = 1'b0;
         Reset = 1'b1;
